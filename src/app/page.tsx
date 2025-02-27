@@ -76,17 +76,17 @@ export default function WikiPortal() {
 									<ScrollArea className="h-[calc(100vh-300px)]">
 										<div className="space-y-4">
 											<div>
-												<h3 className="mb-2 text-sm font-medium">
+												<h3 className="mb-2 text-lg font-medium">
 													Departments
 												</h3>
-												<ul className="space-y-2 text-sm">
+												<ul className="space-y-2 text-lg">
 													<li>
 														<Link
 															href="#innovation"
 															className="flex items-center text-muted-foreground hover:text-primary"
 														>
-															<Lightbulb className="mr-2 h-4 w-4" />
-															Innovation R&D
+															<Lightbulb className="mr-2 h-5 w-5" />
+															Innovation R&amp;D 💡
 														</Link>
 													</li>
 													<li>
@@ -94,8 +94,8 @@ export default function WikiPortal() {
 															href="#engineering"
 															className="flex items-center text-muted-foreground hover:text-primary"
 														>
-															<Code className="mr-2 h-4 w-4" />
-															Engineering
+															<Code className="mr-2 h-5 w-5" />
+															Engineering 💻
 														</Link>
 													</li>
 													<li>
@@ -103,8 +103,8 @@ export default function WikiPortal() {
 															href="#it"
 															className="flex items-center text-muted-foreground hover:text-primary"
 														>
-															<HelpCircle className="mr-2 h-4 w-4" />
-															IT & Helpdesk
+															<HelpCircle className="mr-2 h-5 w-5" />
+															IT &amp; Helpdesk 🔧
 														</Link>
 													</li>
 													<li>
@@ -112,8 +112,8 @@ export default function WikiPortal() {
 															href="#accounting"
 															className="flex items-center text-muted-foreground hover:text-primary"
 														>
-															<BarChart3 className="mr-2 h-4 w-4" />
-															Accounting
+															<BarChart3 className="mr-2 h-5 w-5" />
+															Accounting 💰
 														</Link>
 													</li>
 													<li>
@@ -121,31 +121,31 @@ export default function WikiPortal() {
 															href="#marketing"
 															className="flex items-center text-muted-foreground hover:text-primary"
 														>
-															<Megaphone className="mr-2 h-4 w-4" />
-															Marketing
+															<Megaphone className="mr-2 h-5 w-5" />
+															Marketing 📣
 														</Link>
 													</li>
 												</ul>
 											</div>
 											<div>
-												<h3 className="mb-2 text-sm font-medium">
+												<h3 className="mb-2 text-lg font-medium">
 													Special Sections
 												</h3>
-												<ul className="space-y-2 text-sm">
+												<ul className="space-y-2 text-lg">
 													<li>
 														<Link
 															href="#current-projects"
-															className="text-muted-foreground hover:text-primary"
+															className="flex items-center text-muted-foreground hover:text-primary"
 														>
-															Current R&D Projects
+															Current R&amp;D Projects 🚀
 														</Link>
 													</li>
 													<li>
 														<Link
 															href="#submit-idea"
-															className="text-muted-foreground hover:text-primary"
+															className="flex items-center text-muted-foreground hover:text-primary"
 														>
-															Submit an Idea
+															Submit an Idea 📝
 														</Link>
 													</li>
 												</ul>
@@ -156,24 +156,24 @@ export default function WikiPortal() {
 							</Card>
 						</div>
 
-						{/* Departments & Insights Tabs */}
+						{/* Departments &amp; Insights Tabs */}
 						<div className="lg:col-span-2">
 							<Tabs defaultValue="departments" className="w-full">
 								<TabsList className="grid w-full grid-cols-2">
 									<TabsTrigger value="departments">Departments</TabsTrigger>
 									<TabsTrigger value="insights">
-										Insights & Resources
+										Insights &amp; Resources
 									</TabsTrigger>
 								</TabsList>
 								<TabsContent value="departments" className="space-y-8">
-									{/* Innovation R&D */}
+									{/* Innovation R&amp;D */}
 									<section id="innovation" className="scroll-mt-16">
 										<Card className="shadow-lg">
 											<CardHeader className="bg-primary/5">
 												<div className="flex items-center justify-between">
 													<div className="flex items-center space-x-2">
 														<Lightbulb className="h-5 w-5 text-primary" />
-														<CardTitle>Innovation R&D</CardTitle>
+														<CardTitle>Innovation R&amp;D</CardTitle>
 													</div>
 													<Badge variant="outline">Featured</Badge>
 												</div>
@@ -184,12 +184,12 @@ export default function WikiPortal() {
 											</CardHeader>
 											<CardContent className="pt-6">
 												<p className="text-sm text-muted-foreground">
-													The Innovation R&D department focuses on researching
-													and developing new technologies, products, and
-													solutions that will shape our company's future. The
-													team works on cutting-edge projects and collaborates
-													with other departments to bring innovative ideas to
-													life.
+													The Innovation R&amp;D department focuses on
+													researching and developing new technologies, products,
+													and solutions that will shape our company&apos;s
+													future. The team works on cutting-edge projects and
+													collaborates with other departments to bring
+													innovative ideas to life.
 												</p>
 											</CardContent>
 											<CardFooter className="border-t bg-muted/50 px-6 py-3">
@@ -198,7 +198,7 @@ export default function WikiPortal() {
 													className="flex items-center text-sm text-primary hover:underline"
 													target="_blank"
 												>
-													Visit Innovation R&D Confluence{" "}
+													Visit Innovation R&amp;D Confluence{" "}
 													<ExternalLink className="ml-1 h-3 w-3" />
 												</Link>
 											</CardFooter>
@@ -222,15 +222,15 @@ export default function WikiPortal() {
 												<p className="text-sm text-muted-foreground">
 													The Engineering department is responsible for the
 													development, implementation, and maintenance of our
-													company's products and services. The team consists of
-													software engineers, QA specialists, and technical
-													project managers who work together to deliver
-													high-quality solutions.
+													company&apos;s products and services. The team
+													consists of structural engineers, mechaincal
+													engineers, and project managers who work together to
+													deliver high-quality solutions.
 												</p>
 											</CardContent>
 											<CardFooter className="border-t bg-muted/50 px-6 py-3">
 												<Link
-													href="https://siouxsteel.atlassian.net/wiki/spaces/INNOVATION/overview"
+													href="https://siouxsteel.atlassian.net/wiki/spaces/Engineerin/overview"
 													className="flex items-center text-sm text-primary hover:underline"
 													target="_blank"
 												>
@@ -241,14 +241,14 @@ export default function WikiPortal() {
 										</Card>
 									</section>
 
-									{/* IT & Helpdesk */}
+									{/* IT &amp; Helpdesk */}
 									<section id="it" className="scroll-mt-16">
 										<Card className="shadow-lg">
 											<CardHeader>
 												<div className="flex items-center space-x-2">
 													<HelpCircle className="h-5 w-5 text-primary" />
 													<CardTitle>
-														Information Technology & Helpdesk
+														Information Technology &amp; Helpdesk
 													</CardTitle>
 												</div>
 												<CardDescription>
@@ -258,9 +258,9 @@ export default function WikiPortal() {
 											</CardHeader>
 											<CardContent className="pt-6">
 												<p className="text-sm text-muted-foreground">
-													The IT & Helpdesk department ensures that our
-													company's technical infrastructure runs smoothly and
-													efficiently. They provide support for hardware,
+													The IT &amp; Helpdesk department ensures that our
+													company&apos;s technical infrastructure runs smoothly
+													and efficiently. They provide support for hardware,
 													software, and network issues, and help employees
 													resolve technical problems quickly.
 												</p>
@@ -271,7 +271,7 @@ export default function WikiPortal() {
 													className="flex items-center text-sm text-primary hover:underline"
 													target="_blank"
 												>
-													Visit IT & Helpdesk Confluence{" "}
+													Visit IT &amp; Helpdesk Confluence{" "}
 													<ExternalLink className="ml-1 h-3 w-3" />
 												</Link>
 											</CardFooter>
@@ -327,8 +327,8 @@ export default function WikiPortal() {
 											<CardContent className="pt-6">
 												<p className="text-sm text-muted-foreground">
 													The Marketing department is responsible for promoting
-													our company's products and services, building brand
-													awareness, and driving customer engagement. They
+													our company&apos;s products and services, building
+													brand awareness, and driving customer engagement. They
 													develop marketing strategies, create content, and
 													analyze market trends to help grow our business.
 												</p>
@@ -347,12 +347,14 @@ export default function WikiPortal() {
 									</section>
 								</TabsContent>
 
-								{/* Insights & Resources */}
+								{/* Insights &amp; Resources */}
 								<TabsContent value="insights" className="space-y-8">
 									<section id="current-projects" className="scroll-mt-16">
 										<Card className="shadow-lg">
 											<CardHeader>
-												<CardTitle>Current Innovation R&D Projects</CardTitle>
+												<CardTitle>
+													Current Innovation R&amp;D Projects
+												</CardTitle>
 												<CardDescription>
 													Explore the cutting-edge projects our Innovation team
 													is currently working on
@@ -479,8 +481,8 @@ export default function WikiPortal() {
 																2. The Innovation team reviews all submissions
 															</li>
 															<li>
-																3. If selected, you'll be invited to discuss
-																your idea further
+																3. If selected, you&apos;ll be invited to
+																discuss your idea further
 															</li>
 															<li>
 																4. Approved ideas move into our innovation
