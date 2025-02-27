@@ -207,7 +207,7 @@ export default function IdeaSubmissionPage() {
 						</h1>
 						<p className="mt-4 max-w-[700px] text-lg text-muted-foreground">
 							Great ideas can come from anywhere. Share yours and help shape the
-							future of Sioux Seel.
+							future of Sioux Steel.
 						</p>
 					</div>
 
@@ -282,9 +282,9 @@ export default function IdeaSubmissionPage() {
 								>
 									<TrendingUp className="h-5 w-5" />
 									<div>
-										<p className="font-medium">Resources & Timeline</p>
+										<p className="font-medium">Resources &amp; Timeline</p>
 										<p className="text-xs text-muted-foreground">
-											What's needed to implement your idea
+											What&apos;s needed to implement your idea
 										</p>
 									</div>
 								</div>
@@ -611,7 +611,7 @@ export default function IdeaSubmissionPage() {
 														render={({ field }) => (
 															<FormItem>
 																<FormLabel>
-																	Potential Risks & Challenges
+																	Potential Risks &amp; Challenges
 																</FormLabel>
 																<FormControl>
 																	<Textarea
@@ -635,7 +635,7 @@ export default function IdeaSubmissionPage() {
 										<TabsContent value="resources" className="space-y-6 pt-4">
 											<div className="rounded-lg border bg-card p-6 shadow-sm">
 												<h2 className="mb-4 text-xl font-semibold">
-													Resources & Timeline
+													Resources &amp; Timeline
 												</h2>
 												<div className="space-y-4">
 													<FormField
