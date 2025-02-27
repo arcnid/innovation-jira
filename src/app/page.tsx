@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,14 +17,14 @@ import {
 	Lightbulb,
 	Code,
 	HelpCircle,
-	BarChart3,
-	Megaphone,
 	Search,
 	ExternalLink,
 	BookOpen,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function WikiPortal() {
+	const router = useRouter();
 	return (
 		<div className="flex min-h-screen flex-col">
 			{/* Header */}
@@ -51,7 +53,7 @@ export default function WikiPortal() {
 				<section className="w-full px-4 md:px-8 py-8">
 					<div className="text-left">
 						<h1 className="text-3xl font-extrabold leading-tight tracking-tighter md:text-4xl">
-							Welcome to the Sioux Steel Wiki
+							Welcome to the Sioux Steel Technical Division
 						</h1>
 						<p className="mt-4 text-lg text-muted-foreground">
 							Your central hub for department information, project insights, and
@@ -105,24 +107,6 @@ export default function WikiPortal() {
 														>
 															<HelpCircle className="mr-2 h-5 w-5" />
 															IT &amp; Helpdesk 🔧
-														</Link>
-													</li>
-													<li>
-														<Link
-															href="#accounting"
-															className="flex items-center text-muted-foreground hover:text-primary"
-														>
-															<BarChart3 className="mr-2 h-5 w-5" />
-															Accounting 💰
-														</Link>
-													</li>
-													<li>
-														<Link
-															href="#marketing"
-															className="flex items-center text-muted-foreground hover:text-primary"
-														>
-															<Megaphone className="mr-2 h-5 w-5" />
-															Marketing 📣
 														</Link>
 													</li>
 												</ul>
@@ -223,7 +207,7 @@ export default function WikiPortal() {
 													The Engineering department is responsible for the
 													development, implementation, and maintenance of our
 													company&apos;s products and services. The team
-													consists of structural engineers, mechaincal
+													consists of structural engineers, mechanical
 													engineers, and project managers who work together to
 													deliver high-quality solutions.
 												</p>
@@ -272,74 +256,6 @@ export default function WikiPortal() {
 													target="_blank"
 												>
 													Visit IT &amp; Helpdesk Confluence{" "}
-													<ExternalLink className="ml-1 h-3 w-3" />
-												</Link>
-											</CardFooter>
-										</Card>
-									</section>
-
-									{/* Accounting */}
-									<section id="accounting" className="scroll-mt-16">
-										<Card className="shadow-lg">
-											<CardHeader>
-												<div className="flex items-center space-x-2">
-													<BarChart3 className="h-5 w-5 text-primary" />
-													<CardTitle>Accounting</CardTitle>
-												</div>
-												<CardDescription>
-													Managing financial operations and reporting
-												</CardDescription>
-											</CardHeader>
-											<CardContent className="pt-6">
-												<p className="text-sm text-muted-foreground">
-													The Accounting department handles all financial
-													aspects of our company, including budgeting, financial
-													reporting, payroll, and tax compliance. They work to
-													ensure financial stability and provide insights for
-													strategic decision-making.
-												</p>
-											</CardContent>
-											<CardFooter className="border-t bg-muted/50 px-6 py-3">
-												<Link
-													href="https://confluence.yourcompany.com/accounting"
-													className="flex items-center text-sm text-primary hover:underline"
-													target="_blank"
-												>
-													Visit Accounting Confluence{" "}
-													<ExternalLink className="ml-1 h-3 w-3" />
-												</Link>
-											</CardFooter>
-										</Card>
-									</section>
-
-									{/* Marketing */}
-									<section id="marketing" className="scroll-mt-16">
-										<Card className="shadow-lg">
-											<CardHeader>
-												<div className="flex items-center space-x-2">
-													<Megaphone className="h-5 w-5 text-primary" />
-													<CardTitle>Marketing</CardTitle>
-												</div>
-												<CardDescription>
-													Promoting our brand and products to the world
-												</CardDescription>
-											</CardHeader>
-											<CardContent className="pt-6">
-												<p className="text-sm text-muted-foreground">
-													The Marketing department is responsible for promoting
-													our company&apos;s products and services, building
-													brand awareness, and driving customer engagement. They
-													develop marketing strategies, create content, and
-													analyze market trends to help grow our business.
-												</p>
-											</CardContent>
-											<CardFooter className="border-t bg-muted/50 px-6 py-3">
-												<Link
-													href="https://confluence.yourcompany.com/marketing"
-													className="flex items-center text-sm text-primary hover:underline"
-													target="_blank"
-												>
-													Visit Marketing Confluence{" "}
 													<ExternalLink className="ml-1 h-3 w-3" />
 												</Link>
 											</CardFooter>
@@ -496,15 +412,11 @@ export default function WikiPortal() {
 												<p className="text-sm text-muted-foreground">
 													All submissions are reviewed within 2 weeks
 												</p>
-												<Button>
-													<Link
-														href="https://confluence.yourcompany.com/innovation/submit-idea"
-														className="flex items-center"
-														target="_blank"
-													>
+												<Button onClick={() => router.push("/create")}>
+													<span className="flex items-center">
 														Submit Your Idea{" "}
 														<ExternalLink className="ml-2 h-4 w-4" />
-													</Link>
+													</span>
 												</Button>
 											</CardFooter>
 										</Card>
