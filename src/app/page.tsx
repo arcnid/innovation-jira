@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 export default function WikiPortal() {
 	const router = useRouter();
 	return (
-		<div className="flex min-h-screen flex-col">
+		<div className="flex min-h-screen flex-col relative">
 			{/* Header */}
 			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 				<div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
@@ -137,10 +137,22 @@ export default function WikiPortal() {
 										</div>
 									</ScrollArea>
 								</CardContent>
+								{/* Banner with Submit Button */}
+								<div className="bg-primary/10 p-4 text-center">
+									<p className="mb-2 font-medium text-primary">
+										Got a great idea?
+									</p>
+									<Button
+										onClick={() => router.push("/create")}
+										variant="secondary"
+									>
+										Submit New Idea
+									</Button>
+								</div>
 							</Card>
 						</div>
 
-						{/* Departments &amp; Insights Tabs */}
+						{/* Departments & Insights Tabs */}
 						<div className="lg:col-span-2">
 							<Tabs defaultValue="departments" className="w-full">
 								<TabsList className="grid w-full grid-cols-2">
@@ -150,7 +162,7 @@ export default function WikiPortal() {
 									</TabsTrigger>
 								</TabsList>
 								<TabsContent value="departments" className="space-y-8">
-									{/* Innovation R&amp;D */}
+									{/* Innovation R&D */}
 									<section id="innovation" className="scroll-mt-16">
 										<Card className="shadow-lg">
 											<CardHeader className="bg-primary/5">
@@ -225,7 +237,7 @@ export default function WikiPortal() {
 										</Card>
 									</section>
 
-									{/* IT &amp; Helpdesk */}
+									{/* IT & Helpdesk */}
 									<section id="it" className="scroll-mt-16">
 										<Card className="shadow-lg">
 											<CardHeader>
@@ -263,7 +275,7 @@ export default function WikiPortal() {
 									</section>
 								</TabsContent>
 
-								{/* Insights &amp; Resources */}
+								{/* Insights & Resources */}
 								<TabsContent value="insights" className="space-y-8">
 									<section id="current-projects" className="scroll-mt-16">
 										<Card className="shadow-lg">
@@ -370,10 +382,14 @@ export default function WikiPortal() {
 										</Card>
 									</section>
 
+									{/* Submit an Idea Banner */}
 									<section id="submit-idea" className="scroll-mt-16">
-										<Card className="shadow-lg">
+										<Card className="shadow-lg bg-primary/10 border-l-4 border-primary">
 											<CardHeader>
-												<CardTitle>Submit an Idea</CardTitle>
+												<div className="flex items-center space-x-2">
+													<Lightbulb className="h-6 w-6 text-primary" />
+													<CardTitle>Submit an Idea</CardTitle>
+												</div>
 												<CardDescription>
 													Have a great idea for a new product, feature, or
 													improvement? Share it with our Innovation team!
@@ -397,8 +413,8 @@ export default function WikiPortal() {
 																2. The Innovation team reviews all submissions
 															</li>
 															<li>
-																3. If selected, you&apos;ll be invited to
-																discuss your idea further
+																3. If selected, you'll be invited to discuss
+																your idea further
 															</li>
 															<li>
 																4. Approved ideas move into our innovation
@@ -440,6 +456,17 @@ export default function WikiPortal() {
 					</p>
 				</div>
 			</footer>
+
+			{/* Floating Submit Button (always visible) */}
+			<div className="fixed bottom-4 right-4 z-50">
+				<Button
+					onClick={() => router.push("/create")}
+					variant="secondary"
+					className="shadow-lg"
+				>
+					Submit New Idea
+				</Button>
+			</div>
 		</div>
 	);
 }
