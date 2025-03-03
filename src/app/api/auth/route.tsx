@@ -1,15 +1,20 @@
 // pages/api/auth.js
 import { NextResponse, NextRequest } from "next/server";
-import { saveToken } from "@/services/tokenService";
+import {
+	getLatestToken,
+	saveToken,
+	updateToken,
+	getRequestUrl,
+} from "@/services/tokenService";
 
 export async function GET(req: NextRequest) {
-	// Parse the query parameters from the incoming URL
+	// Parse query parameters from the incoming URL
 	const { searchParams } = new URL(req.url);
 	const code = searchParams.get("code");
 	const state = searchParams.get("state");
 	const error = searchParams.get("error");
 
-	console.log("request received", req.url);
+	console.log("Request received:", req.url);
 
 	// Handle any OAuth error
 	if (error) {
@@ -30,7 +35,7 @@ export async function GET(req: NextRequest) {
 	// Retrieve OAuth configuration from environment variables
 	const client_id = process.env.CLIENT_ID;
 	const client_secret = process.env.CLIENT_SECRET;
-	const redirect_uri = process.env.REDIRECT_URI; // Must exactly match what was used in the auth URL
+	const redirect_uri = process.env.REDIRECT_URI; // Must match your auth URL
 
 	if (!client_id || !client_secret || !redirect_uri) {
 		return NextResponse.json(
@@ -52,6 +57,7 @@ export async function GET(req: NextRequest) {
 
 	try {
 		console.log("Exchanging code for token...");
+
 		// Make a POST request to exchange the code for an access token
 		const tokenRes = await fetch(tokenEndpoint, {
 			method: "POST",
@@ -71,14 +77,28 @@ export async function GET(req: NextRequest) {
 
 		const tokenData = await tokenRes.json();
 
-		// Save the token data in the database via your token service
-		await saveToken(tokenData);
+		// Check if a token already exists and update, otherwise save as new
+		const existingToken = await getLatestToken();
+		if (existingToken) {
+			await updateToken(existingToken.id, tokenData);
+		} else {
+			await saveToken(tokenData);
+		}
 
-		// Return the token data (or redirect the user, etc.)
-		return NextResponse.json(tokenData);
+		console.log("Token exchange successful", tokenData);
+
+		// Craft the Jira API URL based on the accessible resources
+		const newUrl = await getRequestUrl();
+		console.log("Crafted Jira API URL:", newUrl);
+
+		// Return a combined response with token info and the Jira API URL
+		return NextResponse.json({ token: tokenData, jiraApiUrl: newUrl });
 	} catch (err) {
 		return NextResponse.json(
-			{ error: "Error during token exchange", details: err.message },
+			{
+				error: "Error during token exchange",
+				details: err,
+			},
 			{ status: 500 }
 		);
 	}
