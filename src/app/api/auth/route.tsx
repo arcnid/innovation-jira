@@ -36,6 +36,8 @@ export async function GET(req: NextRequest) {
 	const client_secret = process.env.CLIENT_SECRET;
 	const redirect_uri = process.env.REDIRECT_URI; // Must match your auth URL
 
+	console.log(client_id, client_secret, redirect_uri);
+
 	if (!client_id || !client_secret || !redirect_uri) {
 		return NextResponse.json(
 			{ error: "Missing OAuth configuration" },
