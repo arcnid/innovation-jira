@@ -138,6 +138,7 @@ export async function getRequestUrl() {
 		}
 	} else {
 		// Insert a new record
+		//working
 		const { error: insertError } = await supabase.from("sites").insert([
 			{
 				site_id: siteId,
