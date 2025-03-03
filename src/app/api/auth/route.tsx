@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
 	// Parse query parameters from the incoming URL
 	const { searchParams } = new URL(req.url);
 	const code = searchParams.get("code");
-	const state = searchParams.get("state");
 	const error = searchParams.get("error");
 
 	console.log("Request received:", req.url);
