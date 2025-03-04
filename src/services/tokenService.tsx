@@ -3,16 +3,8 @@ import { getSupabaseClient } from "../lib/supabaseClient";
 
 /**
  * Save token data to the database.
- * tokenData is expected to be an object like:
- * {
- *   access_token: string,
- *   refresh_token: string, // may be null if not provided
- *   token_type: string,
- *   scope: string,
- *   expires_in: number
- * }
  */
-export async function saveToken(tokenData: any) {
+export async function saveToken(tokenData) {
 	const supabase = getSupabaseClient();
 	const { data, error } = await supabase.from("tokens").insert([
 		{
@@ -51,7 +43,7 @@ export async function getLatestToken() {
 /**
  * Update the stored token (e.g., after refreshing).
  */
-export async function updateToken(id: any, newTokenData: any) {
+export async function updateToken(id, newTokenData) {
 	const supabase = getSupabaseClient();
 	const { data, error } = await supabase
 		.from("tokens")
@@ -71,25 +63,71 @@ export async function updateToken(id: any, newTokenData: any) {
 }
 
 /**
- * Retrieve the accessible resources from Atlassian and
- * craft the Jira API URL.
- * Also updates (or creates) a site record in the database.
+ * Refresh the token using the stored refresh token.
+ * This function always calls the refresh endpoint and updates the token in the database.
  */
-export async function getRequestUrl() {
-	// 1. Get the stored token
+export async function refreshToken() {
+	// Get the current token (should contain a refresh token)
 	const token = await getLatestToken();
-	if (!token || !token.access_token) {
-		throw new Error("No valid token found");
+	if (!token || !token.refresh_token) {
+		throw new Error("No refresh token available");
 	}
 
-	// 2. Fetch accessible resources from Atlassian
+	// Retrieve OAuth configuration from environment variables
+	const client_id = process.env.CLIENT_ID;
+	const client_secret = process.env.CLIENT_SECRET;
+
+	if (!client_id || !client_secret) {
+		throw new Error("Missing OAuth client configuration");
+	}
+
+	// Call the refresh endpoint
+	const refreshResponse = await fetch(
+		"https://auth.atlassian.com/oauth/token",
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				grant_type: "refresh_token",
+				client_id,
+				client_secret,
+				refresh_token: token.refresh_token,
+			}),
+		}
+	);
+
+	if (!refreshResponse.ok) {
+		const errorText = await refreshResponse.text();
+		throw new Error(`Failed to refresh token: ${errorText}`);
+	}
+
+	const refreshedTokenData = await refreshResponse.json();
+
+	// Update token in the database with the refreshed token data
+	await updateToken(token.id, refreshedTokenData);
+
+	return refreshedTokenData;
+}
+
+/**
+ * Retrieve the accessible resources from Atlassian and
+ * craft the Jira API URL.
+ * This function now automatically refreshes the token before making the request.
+ */
+export async function getRequestUrl() {
+	// Refresh the token to ensure it is valid
+	const refreshedTokenData = await refreshToken();
+
+	// Use the new access token to fetch accessible resources
 	const response = await fetch(
 		"https://api.atlassian.com/oauth/token/accessible-resources",
 		{
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token.access_token}`,
+				Authorization: `Bearer ${refreshedTokenData.access_token}`,
 			},
 		}
 	);
@@ -104,12 +142,12 @@ export async function getRequestUrl() {
 		throw new Error("No accessible resources found");
 	}
 
-	// 3. Pick a site (for example, the first one) and craft the Jira API URL
+	// Pick a site (for example, the first one) and craft the Jira API URL
 	const site = resources[0];
 	const siteId = site.id;
 	const jiraApiUrl = `https://api.atlassian.com/ex/jira/${siteId}/rest/api`;
 
-	// 4. Save or update the site record in Supabase
+	// Save or update the site record in Supabase
 	const supabase = getSupabaseClient();
 	const { data: existingSites, error: selectError } = await supabase
 		.from("sites")
@@ -138,7 +176,6 @@ export async function getRequestUrl() {
 		}
 	} else {
 		// Insert a new record
-		//working
 		const { error: insertError } = await supabase.from("sites").insert([
 			{
 				site_id: siteId,

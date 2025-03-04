@@ -27,7 +27,7 @@ export default function WikiPortal() {
 	const router = useRouter();
 	return (
 		<div className="flex min-h-screen flex-col relative">
-			{/* Header */}
+			{/* Header remains exactly as is */}
 			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 				<div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
 					<Link href="/" className="flex items-center space-x-2">
@@ -47,8 +47,8 @@ export default function WikiPortal() {
 				</div>
 			</header>
 
-			{/* Main Content */}
-			<main className="flex-1">
+			{/* Main Content Container - slightly wider */}
+			<main className="flex-1 max-w-7xl mx-auto">
 				{/* Welcome Section */}
 				<section className="w-full px-4 md:px-8 py-8">
 					<div className="text-left">
@@ -75,13 +75,14 @@ export default function WikiPortal() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<ScrollArea className="h-[calc(100vh-300px)]">
+									{/* Reduced scroll area height to make left nav less tall */}
+									<ScrollArea className="h-[calc(100vh-400px)]">
 										<div className="space-y-4">
 											<div>
 												<h3 className="mb-2 text-lg font-medium">
 													Departments
 												</h3>
-												<ul className="space-y-2 text-lg">
+												<ul className="space-y-4 text-lg">
 													<li>
 														<Link
 															href="#innovation"
@@ -115,10 +116,10 @@ export default function WikiPortal() {
 												<h3 className="mb-2 text-lg font-medium">
 													Special Sections
 												</h3>
-												<ul className="space-y-2 text-lg">
+												<ul className="space-y-4 text-lg">
 													<li>
 														<Link
-															href="#current-projects"
+															href="/projects"
 															className="flex items-center text-muted-foreground hover:text-primary"
 														>
 															Current R&amp;D Projects 🚀
@@ -157,9 +158,7 @@ export default function WikiPortal() {
 							<Tabs defaultValue="departments" className="w-full">
 								<TabsList className="grid w-full grid-cols-2">
 									<TabsTrigger value="departments">Departments</TabsTrigger>
-									<TabsTrigger value="insights">
-										Insights &amp; Resources
-									</TabsTrigger>
+									<TabsTrigger value="insights">Submit an Idea</TabsTrigger>
 								</TabsList>
 								<TabsContent value="departments" className="space-y-8">
 									{/* Innovation R&D */}
@@ -277,111 +276,6 @@ export default function WikiPortal() {
 
 								{/* Insights & Resources */}
 								<TabsContent value="insights" className="space-y-8">
-									<section id="current-projects" className="scroll-mt-16">
-										<Card className="shadow-lg">
-											<CardHeader>
-												<CardTitle>
-													Current Innovation R&amp;D Projects
-												</CardTitle>
-												<CardDescription>
-													Explore the cutting-edge projects our Innovation team
-													is currently working on
-												</CardDescription>
-											</CardHeader>
-											<CardContent>
-												<div className="space-y-6">
-													<div className="rounded-lg border p-4">
-														<h3 className="text-lg font-medium">
-															Project Aurora
-														</h3>
-														<Badge className="mt-1 mb-2">In Progress</Badge>
-														<p className="text-sm text-muted-foreground">
-															A next-generation AI-powered analytics platform
-															that provides real-time insights and predictive
-															modeling for business decision-making.
-														</p>
-														<div className="mt-4 flex items-center text-sm text-muted-foreground">
-															<span className="font-medium">Team Lead:</span>
-															<span className="ml-2">Dr. Sarah Chen</span>
-														</div>
-														<Link
-															href="https://confluence.yourcompany.com/innovation/project-aurora"
-															className="mt-2 flex items-center text-sm text-primary hover:underline"
-															target="_blank"
-														>
-															View Project Details{" "}
-															<ExternalLink className="ml-1 h-3 w-3" />
-														</Link>
-													</div>
-
-													<div className="rounded-lg border p-4">
-														<h3 className="text-lg font-medium">
-															Project Quantum
-														</h3>
-														<Badge className="mt-1 mb-2" variant="outline">
-															Planning Phase
-														</Badge>
-														<p className="text-sm text-muted-foreground">
-															Exploring quantum computing applications for our
-															data processing systems to achieve unprecedented
-															computational efficiency.
-														</p>
-														<div className="mt-4 flex items-center text-sm text-muted-foreground">
-															<span className="font-medium">Team Lead:</span>
-															<span className="ml-2">
-																Dr. Michael Rodriguez
-															</span>
-														</div>
-														<Link
-															href="https://confluence.yourcompany.com/innovation/project-quantum"
-															className="mt-2 flex items-center text-sm text-primary hover:underline"
-															target="_blank"
-														>
-															View Project Details{" "}
-															<ExternalLink className="ml-1 h-3 w-3" />
-														</Link>
-													</div>
-
-													<div className="rounded-lg border p-4">
-														<h3 className="text-lg font-medium">
-															Project Evergreen
-														</h3>
-														<Badge className="mt-1 mb-2" variant="secondary">
-															Recently Launched
-														</Badge>
-														<p className="text-sm text-muted-foreground">
-															A sustainability initiative focused on reducing
-															our carbon footprint through innovative technology
-															solutions and green practices.
-														</p>
-														<div className="mt-4 flex items-center text-sm text-muted-foreground">
-															<span className="font-medium">Team Lead:</span>
-															<span className="ml-2">Emma Johnson</span>
-														</div>
-														<Link
-															href="https://confluence.yourcompany.com/innovation/project-evergreen"
-															className="mt-2 flex items-center text-sm text-primary hover:underline"
-															target="_blank"
-														>
-															View Project Details{" "}
-															<ExternalLink className="ml-1 h-3 w-3" />
-														</Link>
-													</div>
-												</div>
-											</CardContent>
-											<CardFooter className="border-t bg-muted/50 px-6 py-3">
-												<Link
-													href="https://confluence.yourcompany.com/innovation/all-projects"
-													className="flex items-center text-sm text-primary hover:underline"
-													target="_blank"
-												>
-													View All Innovation Projects{" "}
-													<ExternalLink className="ml-1 h-3 w-3" />
-												</Link>
-											</CardFooter>
-										</Card>
-									</section>
-
 									{/* Submit an Idea Banner */}
 									<section id="submit-idea" className="scroll-mt-16">
 										<Card className="shadow-lg bg-primary/10 border-l-4 border-primary">

@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
 	// Parse query parameters from the incoming URL
 	const { searchParams } = new URL(req.url);
 	const code = searchParams.get("code");
+	const state = searchParams.get("state");
 	const error = searchParams.get("error");
 
 	console.log("Request received:", req.url);
@@ -95,6 +96,7 @@ export async function GET(req: NextRequest) {
 		// Return a combined response with token info and the Jira API URL
 		return NextResponse.json({ token: tokenData, jiraApiUrl: newUrl });
 	} catch (err) {
+		console.log("Error during token exchange:", err);
 		return NextResponse.json(
 			{
 				error: "Error during token exchange",
