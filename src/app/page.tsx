@@ -139,17 +139,7 @@ export default function WikiPortal() {
 									</ScrollArea>
 								</CardContent>
 								{/* Banner with Submit Button */}
-								<div className="bg-primary/10 p-4 text-center">
-									<p className="mb-2 font-medium text-primary">
-										Got a great idea?
-									</p>
-									<Button
-										onClick={() => router.push("/create")}
-										variant="secondary"
-									>
-										Submit New Idea
-									</Button>
-								</div>
+								
 							</Card>
 						</div>
 
