@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import useSWR from "swr"; // Added useSWR for caching
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import {
@@ -41,6 +42,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+
+// Fetcher function for SWR caching
+const fetcher = (url) => fetch(url).then((res) => res.json());
 
 const StageIcon = ({ stage, index }) => {
   const icons = [Lightbulb, BarChart, FileText, FileCode, Book, Rocket];
@@ -85,96 +89,99 @@ export default function IdeaTracker() {
   console.log("Rendering IdeaTracker with id:", issueId);
   console.log("params:", params);
 
+  // Use SWR for caching and fetching data
+  const { data: swrData, error } = useSWR(
+    issueId ? `/api/ideas/${issueId}` : null,
+    fetcher,
+    {
+      refreshInterval: 60000, // Auto-refresh every 60 seconds
+      dedupingInterval: 30000, // Prevent duplicate requests within 30 seconds
+    }
+  );
+
+  // Use SWR data if available; otherwise fall back to local state
   useEffect(() => {
-    if (issueId) {
-      console.log("About to fetch with id:", issueId);
-      fetch(`/api/ideas/${issueId}`)
-        .then((res) => res.json())
-        .then((fetchedData) => {
-          console.log("Fetched idea data:", fetchedData);
+    if (swrData) {
+      // Define static stage names exactly as in Jira
+      const staticStages = [
+        { id: 1, name: "Concept Ideation Planning Process" },
+        { id: 2, name: "New Business Impact Analysis Process" },
+        { id: 3, name: "New Product Project Formulation" },
+        { id: 4, name: "New Product Prototyping/Execution" },
+        { id: 5, name: "New Product Pre-Production" },
+        { id: 6, name: "New Product Close-Out/Release" },
+      ];
 
-          // Define static stage names exactly as in Jira
-          const staticStages = [
-            { id: 1, name: "Concept Ideation Planning Process" },
-            { id: 2, name: "New Business Impact Analysis Process" },
-            { id: 3, name: "New Product Project Formulation" },
-            { id: 4, name: "New Product Prototyping/Execution" },
-            { id: 5, name: "New Product Pre-Production" },
-            { id: 6, name: "New Product Close-Out/Release" },
-          ];
-
-          // For each static stage, find the matching child ticket (by comparing summary)
-          const stagesFromChildren = staticStages.map((stage) => {
-            const matchingChild = fetchedData.children.find(
-              (child) => child.fields.summary === stage.name
-            );
-            if (matchingChild) {
-              const childStatusRaw =
-                matchingChild.fields.status.name.toLowerCase();
-              let normalizedStatus = "pending";
-              if (childStatusRaw === "done" || childStatusRaw === "complete") {
-                normalizedStatus = "approved";
-              } else if (childStatusRaw === "in progress") {
-                normalizedStatus = "in-progress";
-              }
-
-              return {
-                id: stage.id,
-                name: stage.name,
-                status: normalizedStatus,
-                completedDate: matchingChild.fields.resolutiondate || null,
-                feedback:
-                  (matchingChild.fields.comment &&
-                    Array.isArray(matchingChild.fields.comment.comments) &&
-                    matchingChild.fields.comment.comments.length > 0 &&
-                    matchingChild.fields.comment.comments[0].body) ||
-                  "",
-              };
-            }
-            // If no matching child ticket is found, return the static stage with default values.
-            return {
-              ...stage,
-              status: "pending",
-              completedDate: null,
-              feedback: "",
-            };
-          });
-
-          // **Ensure project description is always a string**
-          let projectDescription = "No description provided";
-          if (typeof fetchedData.fields.description === "string") {
-            projectDescription = fetchedData.fields.description;
-          } else if (fetchedData.fields.description?.content) {
-            // Extract first paragraph text if available
-            projectDescription =
-              fetchedData.fields.description.content
-                ?.flatMap((block) => block.content?.map((c) => c.text))
-                ?.join(" ") || "No description provided";
+      // For each static stage, find the matching child ticket (by comparing summary)
+      const stagesFromChildren = staticStages.map((stage) => {
+        const matchingChild = swrData.children.find(
+          (child) => child.fields.summary === stage.name
+        );
+        if (matchingChild) {
+          const childStatusRaw = matchingChild.fields.status.name.toLowerCase();
+          let normalizedStatus = "pending";
+          if (childStatusRaw === "done" || childStatusRaw === "complete") {
+            normalizedStatus = "approved";
+          } else if (childStatusRaw === "in progress") {
+            normalizedStatus = "in-progress";
           }
 
-          setData({
-            id: fetchedData.key,
-            title: fetchedData.fields.summary || fetchedData.key,
-            submitter:
-              fetchedData.submitter ||
-              (fetchedData.fields &&
-                fetchedData.fields.reporter &&
-                fetchedData.fields.reporter.displayName) ||
+          return {
+            id: stage.id,
+            name: stage.name,
+            status: normalizedStatus,
+            completedDate: matchingChild.fields.resolutiondate || null,
+            feedback:
+              (matchingChild.fields.comment &&
+                Array.isArray(matchingChild.fields.comment.comments) &&
+                matchingChild.fields.comment.comments.length > 0 &&
+                matchingChild.fields.comment.comments[0].body) ||
               "",
-            submissionDate: fetchedData.submissionDate || fetchedData.created,
-            expectedTimeline: fetchedData.expectedTimeline || "",
-            projectDescription, // ✅ Fixed description handling
-            supportingDocuments: fetchedData.supportingDocuments || [],
-            stages: stagesFromChildren,
-          });
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching idea data:", err);
-          setLoading(false);
-        });
+          };
+        }
+        // If no matching child ticket is found, return the static stage with default values.
+        return {
+          ...stage,
+          status: "pending",
+          completedDate: null,
+          feedback: "",
+        };
+      });
+
+      // **Ensure project description is always a string**
+      let projectDescription = "No description provided";
+      if (typeof swrData.fields.description === "string") {
+        projectDescription = swrData.fields.description;
+      } else if (swrData.fields.description?.content) {
+        // Extract first paragraph text if available
+        projectDescription =
+          swrData.fields.description.content
+            ?.flatMap((block) => block.content?.map((c) => c.text))
+            ?.join(" ") || "No description provided";
+      }
+
+      setData({
+        id: swrData.key,
+        title: swrData.fields.summary || swrData.key,
+        submitter:
+          swrData.submitter ||
+          (swrData.fields &&
+            swrData.fields.reporter &&
+            swrData.fields.reporter.displayName) ||
+          "",
+        submissionDate: swrData.submissionDate || swrData.created,
+        expectedTimeline: swrData.expectedTimeline || "",
+        projectDescription, // ✅ Fixed description handling
+        supportingDocuments: swrData.supportingDocuments || [],
+        stages: stagesFromChildren,
+      });
+      setLoading(false);
     }
-  }, [issueId]);
+  }, [swrData, issueId]);
+
+  if (error) {
+    return <div className="text-red-500 text-center">Error loading data.</div>;
+  }
 
   // Calculate the dynamic current stage based on how many stages are approved.
   const currentStage =
@@ -192,7 +199,7 @@ export default function IdeaTracker() {
             className="flex items-center space-x-2 hover:underline"
           >
             <BookOpen className="h-6 w-6" />
-            <span className="inline-block font-bold">Company Wiki</span>
+            <span className="inline-block font-bold">Sioux Steel Wiki</span>
           </Link>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-2 ml-4">

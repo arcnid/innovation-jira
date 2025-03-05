@@ -35,17 +35,31 @@ export default function WikiPortal() {
             className="flex items-center space-x-2 hover:underline"
           >
             <BookOpen className="h-6 w-6" />
-            <span className="font-bold">Sioux Steel Wiki</span>
+            <span className="inline-block font-bold">Sioux Steel Wiki</span>
           </Link>
-          <div className="flex flex-1 items-center justify-end">
-            <div className="relative w-full max-w-[300px]">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input
-                type="search"
-                placeholder="Search wiki..."
-                className="w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
+          <div className="flex flex-1 items-center justify-end space-x-4">
+            <nav className="flex items-center space-x-2 ml-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  Home
+                </Button>
+              </Link>
+              <Link href="/ideas">
+                <Button variant="ghost" size="sm">
+                  Ideas List
+                </Button>
+              </Link>
+              <Link href="/create">
+                <Button variant="ghost" size="sm">
+                  Submit Idea
+                </Button>
+              </Link>
+              <Link href="/ssc-admin">
+                <Button variant="ghost" size="sm">
+                  Admin
+                </Button>
+              </Link>
+            </nav>
           </div>
         </div>
       </header>
@@ -328,7 +342,7 @@ export default function WikiPortal() {
                             We invite every team member to propose ideas that
                             can revolutionize our products, services, or
                             processes. Your idea might be the next breakthrough
-                            for our company.
+                            for our Sioux Steel.
                           </p>
                           <div className="rounded-lg bg-primary/5 p-4">
                             <h4 className="font-medium">How It Works:</h4>

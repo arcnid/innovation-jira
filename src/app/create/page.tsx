@@ -76,11 +76,9 @@ const formSchema = z.object({
   timeframe: z.string({
     required_error: "Please select an estimated timeframe.",
   }),
-  resources: z
-    .string()
-    .min(20, {
-      message: "Resource description must be at least 20 characters.",
-    }),
+  resources: z.string().min(20, {
+    message: "Resource description must be at least 20 characters.",
+  }),
   budget: z.string().min(1, { message: "Please provide an estimated budget." }),
   targetUsers: z
     .string()
@@ -178,19 +176,36 @@ export default function IdeaSubmissionPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
-          <div className="flex gap-6 md:gap-10">
-            <Link href="/" className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6" />
-              <span className="inline-block font-bold">Sioux Steel Wiki</span>
-            </Link>
-          </div>
+          <Link
+            href="/"
+            className="flex items-center space-x-2 hover:underline"
+          >
+            <BookOpen className="h-6 w-6" />
+            <span className="inline-block font-bold">Company Wiki</span>
+          </Link>
           <div className="flex flex-1 items-center justify-end space-x-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="gap-1">
-                <ChevronLeft className="h-4 w-4" />
-                Back to Wiki
-              </Button>
-            </Link>
+            <nav className="flex items-center space-x-2 ml-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  Home
+                </Button>
+              </Link>
+              <Link href="/ideas">
+                <Button variant="ghost" size="sm">
+                  Ideas List
+                </Button>
+              </Link>
+              <Link href="/create">
+                <Button variant="ghost" size="sm">
+                  Submit Idea
+                </Button>
+              </Link>
+              <Link href="/ssc-admin">
+                <Button variant="ghost" size="sm">
+                  Admin
+                </Button>
+              </Link>
+            </nav>
           </div>
         </div>
       </header>
