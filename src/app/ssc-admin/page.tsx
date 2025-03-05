@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import useSWR from "swr";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useAuth } from "@/context/authContext";
@@ -26,6 +27,7 @@ import {
   Filter,
 } from "lucide-react";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -103,14 +105,14 @@ import { cp } from "fs";
 
 // Fallback market rates if a given category is missing a rate from the service.
 const marketRateRubric: Record<string, number> = {
-  Development: 80,
-  "UX/UI": 70,
+  Development: 120,
+  "UX/UI": 120,
   "Project Management": 90,
-  Research: 75,
+  Research: 100,
   "Content Creation": 65,
-  Testing: 60,
-  Documentation: 55,
-  Prototyping: 0,
+  Testing: 80,
+  Documentation: 80,
+  Prototyping: 120,
 };
 
 /* --------------------------------------------------------------------------
@@ -181,29 +183,22 @@ function Login() {
    AdminDashboard Component
    -------------------------------------------------------------------------- */
 export default function AdminDashboard() {
-  // All hooks are declared unconditionally.
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [hoursData, setHoursData] = useState<any[]>([]);
-  const [qualifiedBreakdown, setQualifiedBreakdown] = useState<{
-    breakdown: Record<
-      string,
-      {
-        totalHours: number;
-        marketRate: number;
-        assignees: Record<string, number>;
-      }
-    >;
-    grandTotal: number;
-    tickets?: any[];
-  } | null>(null);
-  // Removed dummy projects array; we only use the fetched project list.
-  const [projectList, setProjectList] = useState<
-    Array<{ id: string; key: string; name: string; lead?: any }>
-  >([]);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  // New state for tracking loading status.
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // New state for filtering by project lead.
+  const [selectedProjectLead, setSelectedProjectLead] = useState<string | null>(
+    null
+  );
+  // New state for editable market rates.
+  const [editableMarketRates, setEditableMarketRates] = useState<
+    Record<string, number>
+  >({ ...marketRateRubric });
+
+  // Handler to update market rate for a category.
+  const handleMarketRateChange = (category: string, value: number) => {
+    setEditableMarketRates((prev) => ({ ...prev, [category]: value }));
+  };
 
   // Fetch extra user details.
   useEffect(() => {
@@ -216,60 +211,75 @@ export default function AdminDashboard() {
     }
   }, [user]);
 
-  // Fetch qualified hours data and projects.
-  useEffect(() => {
-    if (user) {
-      const fetchData = async () => {
-        setIsLoading(true);
-        try {
-          const { breakdown, grandTotal, tickets } =
-            await getQualifiedHoursBreakdown();
-          setQualifiedBreakdown({ breakdown, grandTotal });
-          if (tickets) {
-            setHoursData(tickets);
-          }
-          // Fetch the projects using the formatted project list function.
-          const filteredProjects =
-            await projectService.getFormattedProjectList();
-          console.log("Filtered Projects", filteredProjects);
-          if (filteredProjects) {
-            setProjectList(filteredProjects);
-          }
-        } catch (error) {
-          console.error("Error fetching qualified hours breakdown:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchData();
+  // Use SWR for caching the qualified hours data (including breakdown and tickets).
+  const {
+    data: qualifiedData,
+    error: qualifiedError,
+    isLoading: isQualifiedLoading,
+  } = useSWR(
+    user ? "qualified-hours" : null,
+    async () => {
+      const { breakdown, grandTotal, tickets } =
+        await getQualifiedHoursBreakdown();
+      return { breakdown, grandTotal, tickets };
+    },
+    {
+      refreshInterval: 60000, // Revalidate every minute
+      dedupingInterval: 30000, // Avoid duplicate requests within 30 seconds
     }
-  }, [user]);
+  );
+
+  // Use SWR for caching the project list.
+  const {
+    data: projectList,
+    error: projectError,
+    isLoading: isProjectsLoading,
+  } = useSWR(
+    user ? "projects" : null,
+    async () => await projectService.getFormattedProjectList(),
+    {
+      refreshInterval: 60000,
+      dedupingInterval: 30000,
+    }
+  );
+
+  // Unified loading state.
+  const isLoading = isQualifiedLoading || isProjectsLoading;
 
   // Compute summary values.
-  const qualifiedTotalHours = qualifiedBreakdown
-    ? Object.values(qualifiedBreakdown.breakdown).reduce(
-        (sum, item) => sum + item.totalHours,
+  const qualifiedTotalHours = qualifiedData
+    ? Object.values(qualifiedData.breakdown).reduce(
+        (sum, item: any) => sum + item.totalHours,
         0
       )
     : 0;
-  const qualifiedGrandTotal = qualifiedBreakdown
-    ? Object.values(qualifiedBreakdown.breakdown).reduce(
-        (sum, item) => sum + item.totalHours * item.marketRate,
+  const qualifiedGrandTotal = qualifiedData
+    ? Object.entries(qualifiedData.breakdown).reduce(
+        (sum, [category, item]: [string, any]) =>
+          sum +
+          item.totalHours *
+            (editableMarketRates[category] !== undefined
+              ? editableMarketRates[category]
+              : item.marketRate || 0),
         0
       )
     : 0;
   const qualifiedAverageRate =
     qualifiedTotalHours > 0 ? qualifiedGrandTotal / qualifiedTotalHours : 0;
+  // Calculate the discounted total (Priority Discount = 30% reduction)
+  const discountedTotal = qualifiedGrandTotal * 0.7;
+  // Use the tickets data from the qualifiedData for badges.
+  const hoursData = qualifiedData?.tickets || [];
 
   // Build chart data.
   const breakdownChartData = {
-    labels: qualifiedBreakdown ? Object.keys(qualifiedBreakdown.breakdown) : [],
+    labels: qualifiedData ? Object.keys(qualifiedData.breakdown) : [],
     datasets: [
       {
         label: "Hours Spent",
-        data: qualifiedBreakdown
-          ? Object.values(qualifiedBreakdown.breakdown).map(
-              (item) => item.totalHours
+        data: qualifiedData
+          ? Object.values(qualifiedData.breakdown).map(
+              (item: any) => item.totalHours
             )
           : [],
         backgroundColor: [
@@ -303,21 +313,131 @@ export default function AdminDashboard() {
     },
   };
 
-  const exportReport = () => {
-    console.log("Exporting report...");
-    alert("Report exported successfully!");
+  // Updated exportReport function using dynamic imports
+  const exportReport = async () => {
+    if (!qualifiedData) {
+      alert("Qualified data is not yet available.");
+      return;
+    }
+
+    try {
+      // Dynamically import jsPDF and autoTable
+      const { default: jsPDF } = await import("jspdf");
+      const { default: autoTable } = await import("jspdf-autotable");
+
+      const doc = new jsPDF();
+
+      // Add title and summary information
+      doc.setFontSize(18);
+      doc.text("Itemized Qualified Hours Report", 14, 22);
+
+      doc.setFontSize(12);
+      doc.text(`Total Qualified Hours: ${qualifiedTotalHours}`, 14, 32);
+      doc.text(
+        `Average Hourly Rate: $${qualifiedAverageRate.toFixed(2)}`,
+        14,
+        40
+      );
+      doc.text(`Total Cost: $${qualifiedGrandTotal.toLocaleString()}`, 14, 48);
+      doc.text(
+        `Priority Discount (30% off): $${discountedTotal.toLocaleString()}`,
+        14,
+        56
+      );
+
+      // Prepare table data
+      const tableColumn = [
+        "Category",
+        "Hours",
+        "Market Rate ($)",
+        "Cost ($)",
+        "Discounted Cost ($)",
+      ];
+      const tableRows: Array<string | number>[] = [];
+
+      Object.keys(qualifiedData.breakdown).forEach((category) => {
+        const item = qualifiedData.breakdown[category];
+        const hours = item.totalHours;
+        const effectiveMarketRate =
+          editableMarketRates[category] !== undefined
+            ? editableMarketRates[category]
+            : item.marketRate || 0;
+        const cost = hours * effectiveMarketRate;
+        const discountedCost = cost * 0.7;
+
+        tableRows.push([
+          category,
+          hours,
+          effectiveMarketRate,
+          cost.toLocaleString(),
+          discountedCost.toLocaleString(),
+        ]);
+      });
+
+      // Use autoTable as a function, passing the document as the first argument.
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 65,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [94, 53, 177] },
+      });
+
+      doc.save("itemized-report.pdf");
+    } catch (error) {
+      console.error("Error exporting report:", error);
+    }
   };
+
+  // --- New: Derive unique project leads for filtering ---
+  const projectLeads =
+    projectList?.reduce((leads: string[], project: any) => {
+      if (project.lead?.name && !leads.includes(project.lead.name)) {
+        leads.push(project.lead.name);
+      }
+      return leads;
+    }, [] as string[]) || [];
+
+  // --- New: Filter projects based on selected lead ---
+  const filteredProjects =
+    selectedProjectLead && projectList
+      ? projectList.filter((p: any) => p.lead?.name === selectedProjectLead)
+      : projectList;
+
+  // Additional Overview Info (Project stats)
+  const totalProjects = projectList ? projectList.length : 0;
+  const uniqueProjectLeads = projectLeads.length;
+  const totalTickets = qualifiedData ? hoursData.length : 0;
 
   // Define the dashboard UI.
   const dashboardContent = (
     <>
-      {/* Header with title, project selection, and user dropdown */}
+      {/* Header with title, nav and dropdowns */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
-          Admin Dashboard
-        </h1>
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
+            Admin Dashboard
+          </h1>
+          <nav className="flex items-center space-x-2">
+            <Link href="/">
+              <Button variant="ghost" size="sm">
+                Home
+              </Button>
+            </Link>
+            <Link href="/create">
+              <Button variant="ghost" size="sm">
+                Submit Idea
+              </Button>
+            </Link>
+            <Link href="/ssc-admin">
+              <Button variant="ghost" size="sm">
+                Admin
+              </Button>
+            </Link>
+          </nav>
+        </div>
         <div className="flex items-center space-x-4">
-          {/* Project Selection Dropdown */}
+          {/* Existing: Project Selection Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -327,8 +447,9 @@ export default function AdminDashboard() {
                 <Briefcase className="h-4 w-4" />
                 {isLoading ? (
                   <Skeleton height={20} width={100} />
-                ) : selectedProject && projectList.length > 0 ? (
-                  projectList.find((p) => p.key === selectedProject)?.name
+                ) : selectedProject && filteredProjects?.length ? (
+                  filteredProjects.find((p: any) => p.key === selectedProject)
+                    ?.name
                 ) : (
                   "Select Project"
                 )}
@@ -351,7 +472,7 @@ export default function AdminDashboard() {
                   </DropdownMenuItem>
                 </>
               ) : (
-                projectList.map((project) => (
+                filteredProjects?.map((project: any) => (
                   <DropdownMenuItem
                     key={project.id}
                     onClick={() => setSelectedProject(project.key)}
@@ -362,6 +483,7 @@ export default function AdminDashboard() {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+
           {/* User Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -438,89 +560,130 @@ export default function AdminDashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <Card className="shadow-sm hover:shadow transition-shadow">
-            <CardHeader>
-              <CardTitle>Qualified Hours Overview</CardTitle>
-              <CardDescription>
-                Summary based on the live data feed.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex flex-col">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    Total Qualified Hours
-                  </span>
-                  {isLoading ? (
-                    <Skeleton height={40} width={80} />
-                  ) : (
-                    <span className="text-3xl font-bold">
-                      {qualifiedTotalHours}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="shadow-sm hover:shadow transition-shadow">
+              <CardHeader>
+                <CardTitle>Qualified Hours Overview</CardTitle>
+                <CardDescription>
+                  Summary based on the live data feed.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Total Qualified Hours
                     </span>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    Average Hourly Rate
-                  </span>
-                  {isLoading ? (
-                    <Skeleton height={40} width={80} />
-                  ) : (
-                    <span className="text-3xl font-bold">
-                      ${qualifiedAverageRate.toFixed(2)}
+                    {isLoading ? (
+                      <Skeleton height={40} width={80} />
+                    ) : (
+                      <span className="text-3xl font-bold">
+                        {qualifiedTotalHours}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Average Hourly Rate
                     </span>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    Total Cost
-                  </span>
-                  {isLoading ? (
-                    <Skeleton height={40} width={100} />
-                  ) : (
-                    <span className="text-3xl font-bold text-purple-700 dark:text-purple-400">
-                      ${qualifiedGrandTotal.toLocaleString()}
+                    {isLoading ? (
+                      <Skeleton height={40} width={80} />
+                    ) : (
+                      <span className="text-3xl font-bold">
+                        ${qualifiedAverageRate.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Total Cost
                     </span>
-                  )}
+                    {isLoading ? (
+                      <Skeleton height={40} width={100} />
+                    ) : (
+                      <span className="text-3xl font-bold text-purple-700 dark:text-purple-400">
+                        ${qualifiedGrandTotal.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Priority Discount
+                    </span>
+                    {isLoading ? (
+                      <Skeleton height={40} width={100} />
+                    ) : (
+                      <span className="text-3xl font-bold text-green-700 dark:text-green-400">
+                        ${discountedTotal.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button
-                onClick={exportReport}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Export Report
-              </Button>
-            </CardFooter>
-          </Card>
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <Button
+                  onClick={exportReport}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export Report
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* New: Project Statistics Card */}
+            <Card className="shadow-sm hover:shadow transition-shadow">
+              <CardHeader>
+                <CardTitle>Project Statistics</CardTitle>
+                <CardDescription>
+                  Overview of projects and tickets.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Total Projects
+                    </span>
+                    {isLoading ? (
+                      <Skeleton height={40} width={80} />
+                    ) : (
+                      <span className="text-3xl font-bold">
+                        {totalProjects}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Unique Project Leads
+                    </span>
+                    {isLoading ? (
+                      <Skeleton height={40} width={80} />
+                    ) : (
+                      <span className="text-3xl font-bold">
+                        {uniqueProjectLeads}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Total Tickets
+                    </span>
+                    {isLoading ? (
+                      <Skeleton height={40} width={80} />
+                    ) : (
+                      <span className="text-3xl font-bold">{totalTickets}</span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Qualified Hours Tab */}
         <TabsContent value="qualified-hours" className="space-y-6">
-          <div className="flex flex-col sm:flex-row gap-4 mb-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search by name, department or category..."
-                className="pl-9"
-              />
-            </div>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <span>Filters</span>
-            </Button>
-            <Button
-              variant="default"
-              className="flex items-center gap-2"
-              onClick={exportReport}
-            >
-              <Download className="h-4 w-4" />
-              <span>Export Report</span>
-            </Button>
-          </div>
-
+          {/* Project Grand Total Card */}
           <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-none shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg">
@@ -531,7 +694,7 @@ export default function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="flex flex-col">
                   <span className="text-sm text-slate-500 dark:text-slate-400">
                     Total Hours
@@ -568,6 +731,18 @@ export default function AdminDashboard() {
                     </span>
                   )}
                 </div>
+                <div className="flex flex-col">
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                    Priority Discount
+                  </span>
+                  {isLoading ? (
+                    <Skeleton height={40} width={100} />
+                  ) : (
+                    <span className="text-3xl font-bold text-green-700 dark:text-green-400">
+                      ${discountedTotal.toLocaleString()}
+                    </span>
+                  )}
+                </div>
               </div>
             </CardContent>
             <CardFooter className="border-t pt-4 flex justify-end">
@@ -579,7 +754,7 @@ export default function AdminDashboard() {
                   {isLoading ? (
                     <Skeleton width={30} />
                   ) : (
-                    hoursData.filter((h) => h.status === "approved").length
+                    hoursData.filter((h: any) => h.status === "approved").length
                   )}{" "}
                   Approved
                 </Badge>
@@ -590,7 +765,7 @@ export default function AdminDashboard() {
                   {isLoading ? (
                     <Skeleton width={30} />
                   ) : (
-                    hoursData.filter((h) => h.status === "pending").length
+                    hoursData.filter((h: any) => h.status === "pending").length
                   )}{" "}
                   Pending
                 </Badge>
@@ -601,7 +776,7 @@ export default function AdminDashboard() {
                   {isLoading ? (
                     <Skeleton width={30} />
                   ) : (
-                    hoursData.filter((h) => h.status === "denied").length
+                    hoursData.filter((h: any) => h.status === "denied").length
                   )}{" "}
                   Denied
                 </Badge>
@@ -610,6 +785,7 @@ export default function AdminDashboard() {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Hours per Category Card */}
             <Card className="shadow-sm hover:shadow transition-shadow">
               <CardHeader>
                 <CardTitle>Hours per Category</CardTitle>
@@ -618,13 +794,15 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex justify-center">
-                <div className="w-full">
+                <div className="w-full" style={{ maxWidth: "300px" }}>
                   {isLoading ? (
                     <Skeleton height={300} />
-                  ) : qualifiedBreakdown ? (
+                  ) : qualifiedData ? (
                     <Doughnut
                       options={chartOptions}
                       data={breakdownChartData}
+                      width={300}
+                      height={300}
                     />
                   ) : (
                     <p>Loading chart...</p>
@@ -633,6 +811,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
+            {/* Category Breakdown Card with Detailed View */}
             <Card className="shadow-sm hover:shadow transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -658,7 +837,7 @@ export default function AdminDashboard() {
                     <div className="mt-6">
                       {isLoading ? (
                         <Skeleton count={5} height={40} />
-                      ) : (
+                      ) : qualifiedData ? (
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -666,47 +845,62 @@ export default function AdminDashboard() {
                               <TableHead>Hours</TableHead>
                               <TableHead>Market Rate ($)</TableHead>
                               <TableHead>Cost</TableHead>
+                              <TableHead>Priority Discount</TableHead>
                               <TableHead>% of Total</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {qualifiedBreakdown &&
-                              Object.keys(qualifiedBreakdown.breakdown).map(
-                                (category) => {
-                                  const item =
-                                    qualifiedBreakdown.breakdown[category];
-                                  const hours = item.totalHours;
-                                  const marketRate =
-                                    item.marketRate ||
-                                    marketRateRubric[category] ||
-                                    0;
-                                  const cost = hours * marketRate;
-                                  const totalChartHours = Object.values(
-                                    qualifiedBreakdown.breakdown
-                                  ).reduce((a, b) => a + b.totalHours, 0);
-                                  const percentage = totalChartHours
-                                    ? Math.round(
-                                        (hours / totalChartHours) * 100
-                                      )
-                                    : 0;
-                                  return (
-                                    <TableRow key={category}>
-                                      <TableCell className="font-medium">
-                                        {category}
-                                      </TableCell>
-                                      <TableCell>{hours}</TableCell>
-                                      <TableCell>{marketRate}</TableCell>
-                                      <TableCell>
-                                        ${cost.toLocaleString()}
-                                      </TableCell>
-                                      <TableCell>{percentage}%</TableCell>
-                                    </TableRow>
-                                  );
-                                }
-                              )}
+                            {Object.keys(qualifiedData.breakdown).map(
+                              (category) => {
+                                const item = qualifiedData.breakdown[category];
+                                const hours = item.totalHours;
+                                const effectiveMarketRate =
+                                  editableMarketRates[category] !== undefined
+                                    ? editableMarketRates[category]
+                                    : item.marketRate || 0;
+                                const cost = hours * effectiveMarketRate;
+                                const discountedCost = cost * 0.7;
+                                const totalChartHours = Object.values(
+                                  qualifiedData.breakdown
+                                ).reduce(
+                                  (a: number, b: any) => a + b.totalHours,
+                                  0
+                                );
+                                const percentage = totalChartHours
+                                  ? Math.round((hours / totalChartHours) * 100)
+                                  : 0;
+                                return (
+                                  <TableRow key={category}>
+                                    <TableCell className="font-medium">
+                                      {category}
+                                    </TableCell>
+                                    <TableCell>{hours}</TableCell>
+                                    <TableCell>
+                                      <Input
+                                        type="number"
+                                        value={effectiveMarketRate}
+                                        onChange={(e) =>
+                                          handleMarketRateChange(
+                                            category,
+                                            Number(e.target.value)
+                                          )
+                                        }
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      ${cost.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell>
+                                      ${discountedCost.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell>{percentage}%</TableCell>
+                                  </TableRow>
+                                );
+                              }
+                            )}
                           </TableBody>
                         </Table>
-                      )}
+                      ) : null}
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -714,7 +908,7 @@ export default function AdminDashboard() {
               <CardContent>
                 {isLoading ? (
                   <Skeleton count={5} height={40} />
-                ) : (
+                ) : qualifiedData ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -722,38 +916,52 @@ export default function AdminDashboard() {
                         <TableHead>Hours</TableHead>
                         <TableHead>Market Rate ($)</TableHead>
                         <TableHead>Cost</TableHead>
+                        <TableHead>Priority Discount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {qualifiedBreakdown &&
-                        Object.keys(qualifiedBreakdown.breakdown).map(
-                          (category) => {
-                            const item = qualifiedBreakdown.breakdown[category];
-                            const hours = item.totalHours;
-                            const marketRate =
-                              item.marketRate ||
-                              marketRateRubric[category] ||
-                              0;
-                            const cost = hours * marketRate;
-                            return (
-                              <TableRow key={category}>
-                                <TableCell className="font-medium">
-                                  {category}
-                                </TableCell>
-                                <TableCell>{hours}</TableCell>
-                                <TableCell>{marketRate}</TableCell>
-                                <TableCell>${cost.toLocaleString()}</TableCell>
-                              </TableRow>
-                            );
-                          }
-                        )}
+                      {Object.keys(qualifiedData.breakdown).map((category) => {
+                        const item = qualifiedData.breakdown[category];
+                        const hours = item.totalHours;
+                        const effectiveMarketRate =
+                          editableMarketRates[category] !== undefined
+                            ? editableMarketRates[category]
+                            : item.marketRate || 0;
+                        const cost = hours * effectiveMarketRate;
+                        const discountedCost = cost * 0.7;
+                        return (
+                          <TableRow key={category}>
+                            <TableCell className="font-medium">
+                              {category}
+                            </TableCell>
+                            <TableCell>{hours}</TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                value={effectiveMarketRate}
+                                onChange={(e) =>
+                                  handleMarketRateChange(
+                                    category,
+                                    Number(e.target.value)
+                                  )
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>${cost.toLocaleString()}</TableCell>
+                            <TableCell>
+                              ${discountedCost.toLocaleString()}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
-                )}
+                ) : null}
               </CardContent>
             </Card>
           </div>
 
+          {/* Qualified Hours Report Card with Detailed View */}
           <Card className="shadow-sm hover:shadow transition-shadow">
             <CardHeader>
               <CardTitle>Qualified Hours Report</CardTitle>
@@ -764,7 +972,7 @@ export default function AdminDashboard() {
             <CardContent>
               {isLoading ? (
                 <Skeleton count={5} height={40} />
-              ) : qualifiedBreakdown ? (
+              ) : qualifiedData ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -772,13 +980,19 @@ export default function AdminDashboard() {
                       <TableHead>Total Hours</TableHead>
                       <TableHead>Market Rate ($)</TableHead>
                       <TableHead>Total Cost</TableHead>
+                      <TableHead>Priority Discount</TableHead>
                       <TableHead>Assignees</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Object.entries(qualifiedBreakdown.breakdown).map(
-                      ([category, data]) => {
-                        const totalCost = data.totalHours * data.marketRate;
+                    {Object.entries(qualifiedData.breakdown).map(
+                      ([category, data]: [string, any]) => {
+                        const effectiveMarketRate =
+                          editableMarketRates[category] !== undefined
+                            ? editableMarketRates[category]
+                            : data.marketRate || 0;
+                        const totalCost = data.totalHours * effectiveMarketRate;
+                        const discountedCost = totalCost * 0.7;
                         const assignees = Object.entries(data.assignees)
                           .map(([name, hrs]) => `${name} (${hrs})`)
                           .join(", ");
@@ -788,8 +1002,22 @@ export default function AdminDashboard() {
                               {category}
                             </TableCell>
                             <TableCell>{data.totalHours}</TableCell>
-                            <TableCell>{data.marketRate}</TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                value={effectiveMarketRate}
+                                onChange={(e) =>
+                                  handleMarketRateChange(
+                                    category,
+                                    Number(e.target.value)
+                                  )
+                                }
+                              />
+                            </TableCell>
                             <TableCell>${totalCost.toLocaleString()}</TableCell>
+                            <TableCell>
+                              ${discountedCost.toLocaleString()}
+                            </TableCell>
                             <TableCell>{assignees}</TableCell>
                           </TableRow>
                         );
@@ -816,7 +1044,6 @@ export default function AdminDashboard() {
     </>
   );
 
-  // Show a loading state until we know the user's authentication state.
   if (user === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
@@ -825,7 +1052,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // Render the dashboard if the user is logged in; otherwise, show the login screen.
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
       <main className="flex-1 p-6 md:p-8 lg:p-12">

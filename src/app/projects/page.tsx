@@ -1,7 +1,7 @@
 "use client";
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import useSWR from "swr";
 import {
   BookOpen,
   Lightbulb,
@@ -90,37 +90,34 @@ const mapProjectToUI = (project) => {
   };
 };
 
+// SWR fetcher function.
+const fetcher = (url) => fetch(url).then((res) => res.json());
+
 export default function DepartmentProjectsPage() {
-  const [projects, setProjects] = useState([]);
-  const [assignees, setAssignees] = useState([]);
+  // Using SWR to cache and revalidate projects data.
+  const { data, error } = useSWR("/api/projects", fetcher, {
+    refreshInterval: 60000, // Revalidate every minute
+    dedupingInterval: 30000, // Avoid duplicate requests within 30 seconds
+  });
+
+  // Map and filter projects once data is loaded.
+  const projects = data
+    ? data.map(mapProjectToUI).filter((project) => !project.isPrivate)
+    : [];
+
+  // Get unique assignees.
+  const assignees = projects
+    ? Array.from(new Set(projects.map((p) => p.lead)))
+    : [];
+
   const [selectedAssignee, setSelectedAssignee] = useState("all");
   const sliderRef = useRef(null);
-
-  useEffect(() => {
-    fetch("/api/projects")
-      .then((res) => res.json())
-      .then((data: any) => {
-        const mappedProjects = data.map(mapProjectToUI);
-        // Filter out projects that are marked as private.
-        const activeProjects = mappedProjects.filter(
-          (project: any) => !project.isPrivate
-        );
-        setProjects(activeProjects);
-        // Get unique assignees.
-        const uniqueAssignees = Array.from(
-          new Set(activeProjects.map((p) => p.lead))
-        );
-        setAssignees(uniqueAssignees as any);
-      })
-      .catch((err) => console.error("Error fetching projects:", err));
-  }, []);
-
-  const isLoading = projects.length === 0;
+  const isLoading = !data;
 
   const filteredProjects =
     selectedAssignee === "all"
       ? projects
-      : projects.filter((project: any) => project.lead === selectedAssignee);
+      : projects.filter((project) => project.lead === selectedAssignee);
 
   // Functions to scroll the slider container horizontally.
   const nextProject = () => {
@@ -155,6 +152,12 @@ export default function DepartmentProjectsPage() {
               <Link href="/create">
                 <Button variant="ghost" size="sm">
                   Submit Idea
+                </Button>
+              </Link>
+              {/* New Admin Navigation Link */}
+              <Link href="/ssc-admin">
+                <Button variant="ghost" size="sm">
+                  Admin
                 </Button>
               </Link>
             </nav>
@@ -231,7 +234,7 @@ export default function DepartmentProjectsPage() {
                     </CardFooter>
                   </Card>
                 ))
-              : filteredProjects.map((project: any) => (
+              : filteredProjects.map((project) => (
                   <Card
                     key={project.key}
                     className="flex-shrink-0 w-[300px] flex flex-col justify-between"
