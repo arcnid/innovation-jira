@@ -41,23 +41,22 @@ const DefaultAvatarIcon = () => (
   </svg>
 );
 
-// Updated mapping function that extracts additional fields from the incoming Jira issue data.
+// Mapping function to extract fields from the incoming idea (Jira issue) data.
 const mapIdeaToUI = (issue) => {
   const fields = issue.fields;
 
-  // Extract description safely
+  // Extract description safely.
   let description = "No description provided";
   if (typeof fields.description === "string") {
     description = fields.description;
   } else if (fields.description?.content) {
-    // Extract first paragraph text if available
     description =
       fields.description.content
         ?.flatMap((block) => block.content?.map((c) => c.text))
         ?.join(" ") || "No description provided";
   }
 
-  // Determine timeframe based on customfield_10017
+  // Determine timeframe based on customfield_10017.
   let timeframe = "long";
   if (fields.customfield_10017 === "green") {
     timeframe = "quick";
@@ -65,7 +64,7 @@ const mapIdeaToUI = (issue) => {
     timeframe = "medium";
   }
 
-  // Choose an icon based on the timeframe
+  // Choose an icon based on the timeframe.
   let icon = Lightbulb;
   if (timeframe === "quick") {
     icon = Clock;
@@ -75,7 +74,7 @@ const mapIdeaToUI = (issue) => {
     id: issue.id,
     key: issue.key,
     title: fields.summary || "No Title",
-    description, // Now always a string
+    description,
     submittedBy: fields.reporter ? fields.reporter.displayName : "Unknown",
     assignee: fields.assignee ? fields.assignee.displayName : "Unassigned",
     created: fields.created,
@@ -139,44 +138,89 @@ export default function IdeaPipelinePage() {
     }
   };
 
+  /* ----------------- HEADER / NAVIGATION ----------------- */
+  // Desktop Header (kept exactly as before)
+  const desktopHeader = (
+    <header className="hidden md:flex sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-8 h-16 items-center justify-between">
+      <Link href="/" className="flex items-center space-x-2 hover:underline">
+        <BookOpen className="h-6 w-6" />
+        <span className="inline-block font-bold">Sioux Steel Wiki</span>
+      </Link>
+      <div className="flex flex-1 items-center justify-end space-x-4">
+        <nav className="flex items-center space-x-2 ml-4">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              Home
+            </Button>
+          </Link>
+          <Link href="/ideas">
+            <Button variant="ghost" size="sm">
+              Ideas List
+            </Button>
+          </Link>
+          <Link href="/create">
+            <Button variant="ghost" size="sm">
+              Submit Idea
+            </Button>
+          </Link>
+          <Link href="/ssc-admin">
+            <Button variant="ghost" size="sm">
+              Admin
+            </Button>
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+
+  // Mobile Header (optimized for mobile with reduced margins and evenly spaced nav buttons)
+  const mobileHeader = (
+    <header className="md:hidden sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2">
+      {/* Top Row: Title */}
+      <div className="flex items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="text-xl font-bold">Sioux Steel Wiki</span>
+        </Link>
+      </div>
+      {/* Navigation Row */}
+      <nav className="flex justify-around mt-2">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            Home
+          </Button>
+        </Link>
+        <Link href="/ideas">
+          <Button variant="ghost" size="sm">
+            Ideas List
+          </Button>
+        </Link>
+        <Link href="/create">
+          <Button variant="ghost" size="sm">
+            Submit Idea
+          </Button>
+        </Link>
+        <Link href="/ssc-admin">
+          <Button variant="ghost" size="sm">
+            Admin
+          </Button>
+        </Link>
+      </nav>
+    </header>
+  );
+
+  // Use the appropriate header based on viewport.
+  const headerComponent = (
+    <>
+      {desktopHeader}
+      {mobileHeader}
+    </>
+  );
+
+  /* ----------------- MAIN CONTENT ----------------- */
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center space-x-2 hover:underline"
-          >
-            <BookOpen className="h-6 w-6" />
-            <span className="inline-block font-bold">Sioux Steel Wiki</span>
-          </Link>
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            <nav className="flex items-center space-x-2 ml-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  Home
-                </Button>
-              </Link>
-              <Link href="/ideas">
-                <Button variant="ghost" size="sm">
-                  Ideas List
-                </Button>
-              </Link>
-              <Link href="/create">
-                <Button variant="ghost" size="sm">
-                  Submit Idea
-                </Button>
-              </Link>
-              <Link href="/ssc-admin">
-                <Button variant="ghost" size="sm">
-                  Admin
-                </Button>
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
+      {headerComponent}
       <main className="flex-1 py-8">
         <div className="w-full max-w-5xl px-4 md:px-8 mx-auto">
           <div className="mb-8">
@@ -208,7 +252,7 @@ export default function IdeaPipelinePage() {
               </SelectContent>
             </Select>
 
-            {/* Filter by Pipeline (e.g., timeframe) */}
+            {/* Filter by Pipeline (timeframe) */}
             <Select
               value={selectedPipeline}
               onValueChange={setSelectedPipeline}
@@ -269,8 +313,6 @@ export default function IdeaPipelinePage() {
                   >
                     <CardHeader>
                       <div className="flex items-center space-x-2">
-                        {/* Show idea icon or avatar if available */}
-
                         <div>
                           <CardTitle className="mt-2">{idea.title}</CardTitle>
                           <span className="text-xs text-muted-foreground">

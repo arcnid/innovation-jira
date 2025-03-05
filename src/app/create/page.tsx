@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,9 +54,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-// Import Sonner's toast and Toaster instead of the custom ones
-import { toast, Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 
+// Schema for the form.
 const formSchema = z.object({
   title: z
     .string()
@@ -171,46 +171,89 @@ export default function IdeaSubmissionPage() {
     // Progress updates via the useEffect on watchedFields
   };
 
+  /* ----------------- HEADER / NAVIGATION ----------------- */
+  // Desktop Header (kept exactly as before)
+  const desktopHeader = (
+    <header className="hidden md:flex sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-8 h-16 items-center justify-between">
+      <Link href="/" className="flex items-center space-x-2 hover:underline">
+        <BookOpen className="h-6 w-6" />
+        <span className="inline-block font-bold">Sioux Steel Wiki</span>
+      </Link>
+      <div className="flex flex-1 items-center justify-end space-x-4">
+        <nav className="flex items-center space-x-2 ml-4">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              Home
+            </Button>
+          </Link>
+          <Link href="/ideas">
+            <Button variant="ghost" size="sm">
+              Ideas List
+            </Button>
+          </Link>
+          <Link href="/create">
+            <Button variant="ghost" size="sm">
+              Submit Idea
+            </Button>
+          </Link>
+          <Link href="/ssc-admin">
+            <Button variant="ghost" size="sm">
+              Admin
+            </Button>
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+
+  // Mobile Header (optimized for mobile with reduced margins and less crowded layout)
+  const mobileHeader = (
+    <header className="md:hidden sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2">
+      {/* Top Row: Title */}
+      <div className="flex items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="text-xl font-bold">Sioux Steel Wiki</span>
+        </Link>
+      </div>
+      {/* Navigation Row */}
+      <nav className="flex justify-around mt-2">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            Home
+          </Button>
+        </Link>
+        <Link href="/ideas">
+          <Button variant="ghost" size="sm">
+            Ideas List
+          </Button>
+        </Link>
+        <Link href="/create">
+          <Button variant="ghost" size="sm">
+            Submit Idea
+          </Button>
+        </Link>
+        <Link href="/ssc-admin">
+          <Button variant="ghost" size="sm">
+            Admin
+          </Button>
+        </Link>
+      </nav>
+    </header>
+  );
+
+  // Use the appropriate header based on viewport.
+  const headerComponent = (
+    <>
+      {desktopHeader}
+      {mobileHeader}
+    </>
+  );
+
+  /* ----------------- MAIN CONTENT ----------------- */
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background to-secondary/20">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center space-x-2 hover:underline"
-          >
-            <BookOpen className="h-6 w-6" />
-            <span className="inline-block font-bold">Company Wiki</span>
-          </Link>
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            <nav className="flex items-center space-x-2 ml-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  Home
-                </Button>
-              </Link>
-              <Link href="/ideas">
-                <Button variant="ghost" size="sm">
-                  Ideas List
-                </Button>
-              </Link>
-              <Link href="/create">
-                <Button variant="ghost" size="sm">
-                  Submit Idea
-                </Button>
-              </Link>
-              <Link href="/ssc-admin">
-                <Button variant="ghost" size="sm">
-                  Admin
-                </Button>
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+      {headerComponent}
       <main className="flex-1 py-8">
         <div className="w-full max-w-5xl px-4 md:px-8 mx-auto">
           <div className="mb-8 w-full flex flex-col items-center text-center">

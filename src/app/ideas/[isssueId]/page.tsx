@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import useSWR from "swr"; // Added useSWR for caching
+import useSWR from "swr";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import {
@@ -23,7 +23,6 @@ import {
   BookOpen,
   Search,
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,7 +42,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 
-// Fetcher function for SWR caching
+// SWR fetcher function.
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
 const StageIcon = ({ stage, index }) => {
@@ -78,18 +77,14 @@ const StageStatus = ({ status }) => {
 };
 
 export default function IdeaTracker() {
-  // Start with null data and a loading flag
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Get URL params with useParams hook
+  // Get URL params with useParams hook.
   const params = useParams();
   const issueId = params.isssueId; // note: the param is named "isssueId" per your API
 
   console.log("Rendering IdeaTracker with id:", issueId);
   console.log("params:", params);
 
-  // Use SWR for caching and fetching data
+  // Use SWR for caching and fetching data.
   const { data: swrData, error } = useSWR(
     issueId ? `/api/ideas/${issueId}` : null,
     fetcher,
@@ -99,10 +94,13 @@ export default function IdeaTracker() {
     }
   );
 
-  // Use SWR data if available; otherwise fall back to local state
+  // Local state for our idea data.
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (swrData) {
-      // Define static stage names exactly as in Jira
+      // Define static stage names exactly as in Jira.
       const staticStages = [
         { id: 1, name: "Concept Ideation Planning Process" },
         { id: 2, name: "New Business Impact Analysis Process" },
@@ -112,7 +110,7 @@ export default function IdeaTracker() {
         { id: 6, name: "New Product Close-Out/Release" },
       ];
 
-      // For each static stage, find the matching child ticket (by comparing summary)
+      // For each static stage, find the matching child ticket (by comparing summary).
       const stagesFromChildren = staticStages.map((stage) => {
         const matchingChild = swrData.children.find(
           (child) => child.fields.summary === stage.name
@@ -148,12 +146,11 @@ export default function IdeaTracker() {
         };
       });
 
-      // **Ensure project description is always a string**
+      // Ensure project description is always a string.
       let projectDescription = "No description provided";
       if (typeof swrData.fields.description === "string") {
         projectDescription = swrData.fields.description;
       } else if (swrData.fields.description?.content) {
-        // Extract first paragraph text if available
         projectDescription =
           swrData.fields.description.content
             ?.flatMap((block) => block.content?.map((c) => c.text))
@@ -171,7 +168,7 @@ export default function IdeaTracker() {
           "",
         submissionDate: swrData.submissionDate || swrData.created,
         expectedTimeline: swrData.expectedTimeline || "",
-        projectDescription, // ✅ Fixed description handling
+        projectDescription, // Fixed description handling
         supportingDocuments: swrData.supportingDocuments || [],
         stages: stagesFromChildren,
       });
@@ -189,48 +186,91 @@ export default function IdeaTracker() {
       ? data.stages.filter((s) => s.status === "approved").length
       : 0;
 
+  /* ----------------- HEADER / NAVIGATION ----------------- */
+  // Desktop Header (kept as before)
+  const desktopHeader = (
+    <header className="hidden md:flex sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-8 h-16 items-center justify-between">
+      <Link href="/" className="flex items-center space-x-2 hover:underline">
+        <BookOpen className="h-6 w-6" />
+        <span className="inline-block font-bold">Sioux Steel Wiki</span>
+      </Link>
+      <div className="flex flex-1 items-center justify-end space-x-4">
+        <nav className="flex items-center space-x-2 ml-4">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              Home
+            </Button>
+          </Link>
+          <Link href="/ideas">
+            <Button variant="ghost" size="sm">
+              Ideas List
+            </Button>
+          </Link>
+          <Link href="/create">
+            <Button variant="ghost" size="sm">
+              Submit Idea
+            </Button>
+          </Link>
+          <Link href="/ssc-admin">
+            <Button variant="ghost" size="sm">
+              Admin
+            </Button>
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+
+  // Mobile Header (optimized for mobile with reduced margins and evenly spaced nav buttons)
+  const mobileHeader = (
+    <header className="md:hidden sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2">
+      {/* Top Row: Title */}
+      <div className="flex items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="text-xl font-bold">Sioux Steel Wiki</span>
+        </Link>
+      </div>
+      {/* Navigation Row */}
+      <nav className="flex justify-around mt-2">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            Home
+          </Button>
+        </Link>
+        <Link href="/ideas">
+          <Button variant="ghost" size="sm">
+            Ideas List
+          </Button>
+        </Link>
+        <Link href="/create">
+          <Button variant="ghost" size="sm">
+            Submit Idea
+          </Button>
+        </Link>
+        <Link href="/ssc-admin">
+          <Button variant="ghost" size="sm">
+            Admin
+          </Button>
+        </Link>
+      </nav>
+    </header>
+  );
+
+  // Use the appropriate header based on viewport.
+  const headerComponent = (
+    <>
+      {desktopHeader}
+      {mobileHeader}
+    </>
+  );
+
+  /* ----------------- MAIN CONTENT ----------------- */
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background to-secondary/20">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center space-x-2 hover:underline"
-          >
-            <BookOpen className="h-6 w-6" />
-            <span className="inline-block font-bold">Sioux Steel Wiki</span>
-          </Link>
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            <nav className="flex items-center space-x-2 ml-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  Home
-                </Button>
-              </Link>
-              <Link href="/ideas">
-                <Button variant="ghost" size="sm">
-                  Ideas List
-                </Button>
-              </Link>
-              <Link href="/create">
-                <Button variant="ghost" size="sm">
-                  Submit Idea
-                </Button>
-              </Link>
-              <Link href="/ssc-admin">
-                <Button variant="ghost" size="sm">
-                  Admin
-                </Button>
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main content */}
+      {headerComponent}
       <main className="flex-1 py-8">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 md:px-8">
           <Card className="mb-8">
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -263,7 +303,7 @@ export default function IdeaTracker() {
               <div className="flex items-center space-x-4 mb-4">
                 <Avatar>
                   {loading ? (
-                    <Skeleton circle={true} height={40} width={40} />
+                    <Skeleton circle height={40} width={40} />
                   ) : (
                     <>
                       <AvatarImage src="/avatars/01.png" alt={data.submitter} />
@@ -309,7 +349,7 @@ export default function IdeaTracker() {
                           <Skeleton width={150} />
                         </div>
                         <div className="relative">
-                          <Skeleton circle={true} height={48} width={48} />
+                          <Skeleton circle height={48} width={48} />
                         </div>
                         <div className="w-1/2 pl-4">
                           <Skeleton width={120} />
@@ -463,7 +503,6 @@ export default function IdeaTracker() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t py-6">
         <div className="w-full px-4 md:px-8 flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-center text-sm text-muted-foreground">
@@ -471,7 +510,7 @@ export default function IdeaTracker() {
             reserved.
           </p>
           <p className="text-center text-sm text-muted-foreground">
-            Innovation starts with you
+            Innovation at every step
           </p>
         </div>
       </footer>

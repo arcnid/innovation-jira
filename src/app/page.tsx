@@ -25,44 +25,91 @@ import { useRouter } from "next/navigation";
 
 export default function WikiPortal() {
   const router = useRouter();
+
+  // Desktop Header (kept exactly as before)
+  const desktopHeader = (
+    <header className="hidden md:flex sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2 hover:underline">
+          <BookOpen className="h-6 w-6" />
+          <span className="inline-block font-bold">Sioux Steel Wiki</span>
+        </Link>
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <nav className="flex items-center space-x-2 ml-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm">
+                Home
+              </Button>
+            </Link>
+            <Link href="/ideas">
+              <Button variant="ghost" size="sm">
+                Ideas List
+              </Button>
+            </Link>
+            <Link href="/create">
+              <Button variant="ghost" size="sm">
+                Submit Idea
+              </Button>
+            </Link>
+            <Link href="/ssc-admin">
+              <Button variant="ghost" size="sm">
+                Admin
+              </Button>
+            </Link>
+          </nav>
+        </div>
+      </div>
+    </header>
+  );
+
+  // Mobile Header (new mobile friendly layout)
+  const mobileHeader = (
+    <header className="md:hidden sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2">
+      {/* Top Row: Title */}
+      <div className="flex items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="text-xl font-bold">Sioux Steel Wiki</span>
+        </Link>
+      </div>
+      {/* Navigation Row */}
+      <nav className="flex justify-around mt-2">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            Home
+          </Button>
+        </Link>
+        <Link href="/ideas">
+          <Button variant="ghost" size="sm">
+            Ideas List
+          </Button>
+        </Link>
+        <Link href="/create">
+          <Button variant="ghost" size="sm">
+            Submit Idea
+          </Button>
+        </Link>
+        <Link href="/ssc-admin">
+          <Button variant="ghost" size="sm">
+            Admin
+          </Button>
+        </Link>
+      </nav>
+    </header>
+  );
+
+  // Choose header based on viewport.
+  const header = (
+    <>
+      {desktopHeader}
+      {mobileHeader}
+    </>
+  );
+
   return (
     <div className="flex min-h-screen flex-col relative">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center space-x-2 hover:underline"
-          >
-            <BookOpen className="h-6 w-6" />
-            <span className="inline-block font-bold">Sioux Steel Wiki</span>
-          </Link>
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            <nav className="flex items-center space-x-2 ml-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  Home
-                </Button>
-              </Link>
-              <Link href="/ideas">
-                <Button variant="ghost" size="sm">
-                  Ideas List
-                </Button>
-              </Link>
-              <Link href="/create">
-                <Button variant="ghost" size="sm">
-                  Submit Idea
-                </Button>
-              </Link>
-              <Link href="/ssc-admin">
-                <Button variant="ghost" size="sm">
-                  Admin
-                </Button>
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      {header}
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto">
@@ -73,9 +120,9 @@ export default function WikiPortal() {
               Welcome to the Sioux Steel Technical Division
             </h1>
             <p className="mt-2 text-xl text-primary font-medium">
-              The Sioux Steel hub for project activity & technical innovation 🚀
+              The Sioux Steel hub for project activity &amp; technical
+              innovation 🚀
             </p>
-
             <p className="mt-4 text-lg text-muted-foreground">
               Got an innovative idea? Use our streamlined New Product
               Introduction process to submit your proposal directly to the
@@ -396,17 +443,6 @@ export default function WikiPortal() {
           </p>
         </div>
       </footer>
-
-      {/* Floating Submit Button */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button
-          onClick={() => router.push("/create")}
-          variant="secondary"
-          className="shadow-lg"
-        >
-          Submit New Idea
-        </Button>
-      </div>
     </div>
   );
 }

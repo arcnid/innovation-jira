@@ -132,39 +132,82 @@ export default function DepartmentProjectsPage() {
     }
   };
 
+  /* ----------------- HEADER / NAVIGATION ----------------- */
+  // Desktop Header (kept exactly as before)
+  const desktopHeader = (
+    <header className="hidden md:flex sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-8 h-16 items-center justify-between">
+      <div className="flex gap-6 md:gap-10">
+        <Link href="/" className="flex items-center space-x-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="inline-block font-bold">Sioux Steel Wiki</span>
+        </Link>
+      </div>
+      <div className="flex flex-1 items-center justify-end space-x-4">
+        <nav className="flex items-center space-x-2">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              Home
+            </Button>
+          </Link>
+          <Link href="/create">
+            <Button variant="ghost" size="sm">
+              Submit Idea
+            </Button>
+          </Link>
+          {/* New Admin Navigation Link */}
+          <Link href="/ssc-admin">
+            <Button variant="ghost" size="sm">
+              Admin
+            </Button>
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+
+  // Mobile Header (optimized for mobile with reduced margins and less crowded layout)
+  const mobileHeader = (
+    <header className="md:hidden sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2">
+      {/* Top Row: Title */}
+      <div className="flex items-center justify-between">
+        <Link href="/" className="flex items-center space-x-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="text-xl font-bold">Sioux Steel Wiki</span>
+        </Link>
+      </div>
+      {/* Navigation Row */}
+      <nav className="flex justify-around mt-2">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            Home
+          </Button>
+        </Link>
+        <Link href="/create">
+          <Button variant="ghost" size="sm">
+            Submit Idea
+          </Button>
+        </Link>
+        <Link href="/ssc-admin">
+          <Button variant="ghost" size="sm">
+            Admin
+          </Button>
+        </Link>
+      </nav>
+    </header>
+  );
+
+  // Choose header based on viewport.
+  const header = (
+    <>
+      {desktopHeader}
+      {mobileHeader}
+    </>
+  );
+
+  /* ----------------- MAIN CONTENT ----------------- */
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
-          <div className="flex gap-6 md:gap-10">
-            <Link href="/" className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6" />
-              <span className="inline-block font-bold">Sioux Steel Wiki</span>
-            </Link>
-          </div>
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            <nav className="flex items-center space-x-2">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  Home
-                </Button>
-              </Link>
-              <Link href="/create">
-                <Button variant="ghost" size="sm">
-                  Submit Idea
-                </Button>
-              </Link>
-              {/* New Admin Navigation Link */}
-              <Link href="/ssc-admin">
-                <Button variant="ghost" size="sm">
-                  Admin
-                </Button>
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
+      {header}
       <main className="flex-1 py-8">
         <div className="w-full max-w-5xl px-4 md:px-8 mx-auto">
           <div className="mb-8">

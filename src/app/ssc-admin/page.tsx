@@ -410,186 +410,257 @@ export default function AdminDashboard() {
   const uniqueProjectLeads = projectLeads.length;
   const totalTickets = qualifiedData ? hoursData.length : 0;
 
-  // Updated Header/Nav modeled after WikiPortal with improved mobile UX.
-  const headerNav = (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="w-full px-4 md:px-8 flex flex-col md:flex-row">
-        {/* Top Row: Brand and Mobile User Dropdown */}
-        <div className="flex items-center justify-between h-16">
-          <Link
-            href="/ssc-admin"
-            className="flex items-center space-x-2 hover:underline"
-          >
-            <Wrench />
-            <span className="inline-block font-bold">Innovation Admin</span>
-          </Link>
-          {/* Mobile User Dropdown */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-10 w-10 rounded-full"
-                >
-                  <Avatar className="h-10 w-10 border-2 border-primary/10">
-                    {userProfile &&
-                    userProfile.user_metadata &&
-                    userProfile.user_metadata.avatar_url ? (
-                      <AvatarImage
-                        src={userProfile.user_metadata.avatar_url}
-                        alt={userProfile.email}
-                      />
-                    ) : (
-                      <AvatarFallback>
-                        {userProfile && userProfile.email
-                          ? userProfile.email.charAt(0).toUpperCase()
-                          : "AU"}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">
-                      {userProfile && userProfile.email
-                        ? userProfile.email
-                        : "Admin User"}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => logout()}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+  /* ----------------- HEADER / NAVIGATION ----------------- */
+  // Desktop Header (kept exactly as before)
+  const desktopHeader = (
+    <header className="hidden md:flex sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-8 h-16 items-center justify-between">
+      {/* Left Side: Page Title */}
+      <Link
+        href="/ssc-admin"
+        className="flex items-center space-x-2 hover:underline"
+      >
+        <Wrench className="h-6 w-6" />
+        <span className="inline-block text-xl font-bold">Innovation Admin</span>
+      </Link>
 
-        {/* Bottom Row: Navigation Links, Project Dropdown, Desktop User Dropdown */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t md:border-t-0 pt-4 pb-2 md:pt-0 md:pb-0">
-          <nav className="flex items-center space-x-2">
-            <Link href="/">
-              <Button variant="ghost" size="sm">
-                Home
-              </Button>
-            </Link>
-            <Link href="/create">
-              <Button variant="ghost" size="sm">
-                Submit Idea
-              </Button>
-            </Link>
-            <Link href="/ssc-admin">
-              <Button variant="ghost" size="sm">
-                Admin
-              </Button>
-            </Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            {/* Project Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="px-4 py-2 flex items-center gap-2"
+      {/* Right Side: Navigation Items */}
+      <div className="flex items-center space-x-4">
+        <nav className="flex items-center space-x-6">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              Home
+            </Button>
+          </Link>
+          <Link href="/create">
+            <Button variant="ghost" size="sm">
+              Submit Idea
+            </Button>
+          </Link>
+          <Link href="/ssc-admin">
+            <Button variant="ghost" size="sm">
+              Admin
+            </Button>
+          </Link>
+        </nav>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="px-4 py-2 flex items-center gap-2"
+            >
+              <Briefcase className="h-4 w-4" />
+              {isLoading ? (
+                <Skeleton height={20} width={100} />
+              ) : selectedProject && filteredProjects?.length ? (
+                filteredProjects.find((p: any) => p.key === selectedProject)
+                  ?.name
+              ) : (
+                "Select Project"
+              )}
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel>Select a Project</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {isLoading ? (
+              <>
+                <DropdownMenuItem>
+                  <Skeleton height={20} width={120} />
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Skeleton height={20} width={120} />
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Skeleton height={20} width={120} />
+                </DropdownMenuItem>
+              </>
+            ) : (
+              filteredProjects?.map((project: any) => (
+                <DropdownMenuItem
+                  key={project.id}
+                  onClick={() => setSelectedProject(project.key)}
                 >
-                  <Briefcase className="h-4 w-4" />
-                  {isLoading ? (
-                    <Skeleton height={20} width={100} />
-                  ) : selectedProject && filteredProjects?.length ? (
-                    filteredProjects.find((p: any) => p.key === selectedProject)
-                      ?.name
-                  ) : (
-                    "Select Project"
-                  )}
-                  <ChevronDown className="h-4 w-4 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel>Select a Project</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {isLoading ? (
-                  <>
-                    <DropdownMenuItem>
-                      <Skeleton height={20} width={120} />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Skeleton height={20} width={120} />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Skeleton height={20} width={120} />
-                    </DropdownMenuItem>
-                  </>
+                  {project.name}
+                </DropdownMenuItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Avatar className="h-10 w-10 border-2 border-primary/10">
+                {userProfile &&
+                userProfile.user_metadata &&
+                userProfile.user_metadata.avatar_url ? (
+                  <AvatarImage
+                    src={userProfile.user_metadata.avatar_url}
+                    alt={userProfile.email}
+                  />
                 ) : (
-                  filteredProjects?.map((project: any) => (
-                    <DropdownMenuItem
-                      key={project.id}
-                      onClick={() => setSelectedProject(project.key)}
-                    >
-                      {project.name}
-                    </DropdownMenuItem>
-                  ))
+                  <AvatarFallback>
+                    {userProfile && userProfile.email
+                      ? userProfile.email.charAt(0).toUpperCase()
+                      : "AU"}
+                  </AvatarFallback>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {/* Desktop User Dropdown */}
-            <div className="hidden md:block">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-10 w-10 rounded-full"
-                  >
-                    <Avatar className="h-10 w-10 border-2 border-primary/10">
-                      {userProfile &&
-                      userProfile.user_metadata &&
-                      userProfile.user_metadata.avatar_url ? (
-                        <AvatarImage
-                          src={userProfile.user_metadata.avatar_url}
-                          alt={userProfile.email}
-                        />
-                      ) : (
-                        <AvatarFallback>
-                          {userProfile && userProfile.email
-                            ? userProfile.email.charAt(0).toUpperCase()
-                            : "AU"}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">
-                        {isLoading ? (
-                          <Skeleton width={100} />
-                        ) : userProfile && userProfile.email ? (
-                          userProfile.email
-                        ) : (
-                          "Admin User"
-                        )}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium">
+                  {isLoading ? (
+                    <Skeleton width={100} />
+                  ) : userProfile && userProfile.email ? (
+                    userProfile.email
+                  ) : (
+                    "Admin User"
+                  )}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => logout()}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
 
-  // Define the dashboard UI.
+  // Mobile Header (optimized for mobile with reduced margins and less crowded layout)
+  const mobileHeader = (
+    <header className="md:hidden sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2">
+      {/* Top row: Title and User Dropdown */}
+      <div className="flex items-center justify-between">
+        <Link href="/ssc-admin" className="flex items-center space-x-2">
+          <Wrench className="h-6 w-6" />
+          <span className="text-xl font-bold">Innovation Admin</span>
+        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-10 w-10 rounded-full">
+              <Avatar className="h-10 w-10 border-2 border-primary/10">
+                {userProfile &&
+                userProfile.user_metadata &&
+                userProfile.user_metadata.avatar_url ? (
+                  <AvatarImage
+                    src={userProfile.user_metadata.avatar_url}
+                    alt={userProfile.email}
+                  />
+                ) : (
+                  <AvatarFallback>
+                    {userProfile && userProfile.email
+                      ? userProfile.email.charAt(0).toUpperCase()
+                      : "AU"}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium">
+                  {userProfile && userProfile.email
+                    ? userProfile.email
+                    : "Admin User"}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => logout()}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      {/* Navigation Row */}
+      <nav className="flex justify-around mt-2">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            Home
+          </Button>
+        </Link>
+        <Link href="/create">
+          <Button variant="ghost" size="sm">
+            Submit Idea
+          </Button>
+        </Link>
+        <Link href="/ssc-admin">
+          <Button variant="ghost" size="sm">
+            Admin
+          </Button>
+        </Link>
+      </nav>
+      {/* Project Dropdown */}
+      <div className="mt-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-between px-4 py-2"
+            >
+              <Briefcase className="h-4 w-4" />
+              <span className="flex-1 text-left">
+                {isLoading ? (
+                  <Skeleton height={20} width={100} />
+                ) : selectedProject && filteredProjects?.length ? (
+                  filteredProjects.find((p: any) => p.key === selectedProject)
+                    ?.name
+                ) : (
+                  "Select Project"
+                )}
+              </span>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel>Select a Project</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {isLoading ? (
+              <>
+                <DropdownMenuItem>
+                  <Skeleton height={20} width={120} />
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Skeleton height={20} width={120} />
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Skeleton height={20} width={120} />
+                </DropdownMenuItem>
+              </>
+            ) : (
+              filteredProjects?.map((project: any) => (
+                <DropdownMenuItem
+                  key={project.id}
+                  onClick={() => setSelectedProject(project.key)}
+                >
+                  {project.name}
+                </DropdownMenuItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+
+  // Choose header based on viewport.
+  const headerNav = (
+    <>
+      {desktopHeader}
+      {mobileHeader}
+    </>
+  );
+
+  /* ----------------- DASHBOARD CONTENT ----------------- */
   const dashboardContent = (
     <>
       {/** Main Dashboard Content **/}
