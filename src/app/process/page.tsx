@@ -302,7 +302,7 @@ export default function TutorialProcessPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold">
-                  Process Tutorial: Interactive Guide
+                  New Product Introduction Process: Interactive Reference Guide
                 </h1>
                 <p className="mt-2 text-muted-foreground">
                   Learn each step of the process through this interactive
