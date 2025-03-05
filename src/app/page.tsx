@@ -252,7 +252,7 @@ export default function WikiPortal() {
                               className="w-full justify-start"
                             >
                               <Link
-                                href="/ideas"
+                                href="/process"
                                 className="flex items-center hover:underline"
                               >
                                 NPI Process Tutorial 🎓
