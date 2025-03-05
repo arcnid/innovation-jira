@@ -284,17 +284,6 @@ export default function DepartmentProjectsPage() {
                   >
                     <CardHeader>
                       <div className="flex items-center space-x-2">
-                        {project.avatar ? (
-                          <img
-                            src={project.avatar}
-                            className="h-10 w-10 rounded-full"
-                            alt={`${project.name} avatar`}
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <DefaultAvatarIcon />
-                          </div>
-                        )}
                         <CardTitle className="mt-2">{project.name}</CardTitle>
                       </div>
                     </CardHeader>

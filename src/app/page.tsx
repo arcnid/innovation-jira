@@ -143,7 +143,7 @@ export default function WikiPortal() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[calc(100vh-400px)]">
+                  <ScrollArea className="h-[calc(100vh-350px)]">
                     <div className="space-y-4">
                       <div>
                         <h3 className="mb-2 text-lg font-medium">
@@ -161,7 +161,7 @@ export default function WikiPortal() {
                                 className="flex items-center hover:underline"
                               >
                                 <Lightbulb className="mr-2 h-5 w-5" />
-                                Innovation R&amp;D 💡
+                                Innovation R&amp;D
                               </Link>
                             </Button>
                           </li>
@@ -176,7 +176,7 @@ export default function WikiPortal() {
                                 className="flex items-center hover:underline"
                               >
                                 <Code className="mr-2 h-5 w-5" />
-                                Engineering 💻
+                                Engineering
                               </Link>
                             </Button>
                           </li>
@@ -191,15 +191,16 @@ export default function WikiPortal() {
                                 className="flex items-center hover:underline"
                               >
                                 <HelpCircle className="mr-2 h-5 w-5" />
-                                IT &amp; Helpdesk 🔧
+                                IT &amp; Helpdesk
                               </Link>
                             </Button>
                           </li>
                         </ul>
                       </div>
+
                       <div>
                         <h3 className="mb-2 text-lg font-medium">
-                          Special Sections
+                          Quick Links
                         </h3>
                         <ul className="space-y-4 text-lg">
                           <li>
@@ -212,7 +213,7 @@ export default function WikiPortal() {
                                 href="/projects"
                                 className="flex items-center hover:underline"
                               >
-                                Current R&amp;D Projects 🚀
+                                Current R&amp;D Projects
                               </Link>
                             </Button>
                           </li>
@@ -241,6 +242,20 @@ export default function WikiPortal() {
                                 className="flex items-center hover:underline"
                               >
                                 Current Idea Pipeline 🚀
+                              </Link>
+                            </Button>
+                          </li>
+                          <li>
+                            <Button
+                              asChild
+                              variant="secondary"
+                              className="w-full justify-start"
+                            >
+                              <Link
+                                href="/ideas"
+                                className="flex items-center hover:underline"
+                              >
+                                NPI Process Tutorial 🎓
                               </Link>
                             </Button>
                           </li>

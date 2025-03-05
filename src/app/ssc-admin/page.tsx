@@ -26,6 +26,9 @@ import {
   Search,
   Filter,
   Wrench,
+  Mail,
+  Lock,
+  HelpCircle,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -119,6 +122,7 @@ const marketRateRubric: Record<string, number> = {
 /* --------------------------------------------------------------------------
    Login Component
    -------------------------------------------------------------------------- */
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -130,9 +134,7 @@ function Login() {
     setLoading(true);
     setError(null);
     try {
-      // Call our auth service login method.
       await loginService(email, password);
-      // The AuthContext's onAuthStateChange will update the user.
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {
@@ -141,41 +143,66 @@ function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white dark:bg-slate-800 p-8 rounded shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-center">SSC Admin Login</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <div className="mb-4">
-          <label htmlFor="email" className="block mb-1">
-            Email
-          </label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-6">
-          <label htmlFor="password" className="block mb-1">
-            Password
-          </label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Logging in..." : "Login"}
-        </Button>
-      </form>
+    <div
+      className="flex items-center justify-center max-h-screen bg-slate-50 dark:bg-slate-900"
+      style={{
+        margin: "0 auto",
+        marginTop: "20vh",
+      }}
+    >
+      <div className="w-full max-w-sm p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded shadow-lg border border-white/20">
+        <h2 className="text-2xl font-bold mb-6 text-center">SSC Admin Login</h2>
+        {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium mb-1 flex items-center gap-1"
+            >
+              <Mail className="w-4 h-4" />
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="bg-transparent"
+              placeholder="your.email@example.com"
+            />
+          </div>
+          <div className="mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium mb-1 flex items-center gap-1"
+            >
+              <Lock className="w-4 h-4" />
+              Password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="bg-transparent"
+              placeholder="Enter your password"
+            />
+          </div>
+          <div className="mb-4 text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs flex items-center gap-1"
+            >
+              <HelpCircle className="w-3 h-3" /> Forgot Password?
+            </Link>
+          </div>
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

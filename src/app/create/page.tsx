@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -117,6 +116,10 @@ export default function IdeaSubmissionPage() {
       businessCase: "",
       risks: "",
       termsAgreed: false,
+      category: "",
+      department: "",
+      impact: "",
+      timeframe: "",
     },
   });
 
@@ -135,21 +138,78 @@ export default function IdeaSubmissionPage() {
     setFormProgress(calculateProgress());
   }, [watchedFields]);
 
-  // Our submission handler logs values and then redirects
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  // Updated submission handler that calls /api/issues POST
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log("Form Values:", values);
     console.log("File Uploaded:", fileUploaded);
     console.log("File Name:", fileName);
     console.log("File Binary Data:", fileBinaryData);
 
-    toast.success(
-      "Idea submitted successfully! Your idea has been submitted for review by the executive team."
-    );
+    // Build a payload for the Jira issue. Since the Jira API expects minimal fields,
+    // we send the extra idea data as a JSON string in the description.
+    const payload = {
+      // Replace with your actual project key if needed.
+      projectKey: "TP",
+      // Use the idea title as the Jira issue summary.
+      summary: values.title,
+      // Set a static issue type. Adjust if your Jira setup expects a different type.
+      issueType: "Task",
+      // Combine the various fields into a JSON string.
+      description: JSON.stringify(
+        {
+          title: values.title,
+          executiveSummary: values.summary,
+          detailedDescription: values.description,
+          category: values.category,
+          department: values.department,
+          impact: values.impact,
+          targetUsers: values.targetUsers,
+          businessCase: values.businessCase,
+          risks: values.risks,
+          resources: values.resources,
+          budget: values.budget,
+          timeframe: values.timeframe,
+          fileUploaded,
+          fileName,
+          // Note: The file binary data is not sent; you could extend this to send a base64
+          // encoded version if needed.
+        },
+        null,
+        2
+      ),
+    };
 
-    // Redirect after a delay to show the toast
-    setTimeout(() => {
-      router.push("/");
-    }, 2000);
+    try {
+      // Call our API route to create the Jira issue.
+      const response = await fetch("/api/issues", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(
+          `Failed to submit idea: ${errorData.error || "Unknown error"}`
+        );
+        return;
+      }
+
+      // Optionally, you could use the returned Jira issue data.
+      const result = await response.json();
+      console.log("Jira Issue Created:", result);
+
+      toast.success(
+        "Idea submitted successfully! Your idea has been submitted for review."
+      );
+      // Redirect after a delay to show the toast
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
+    } catch (error: any) {
+      toast.error("An error occurred while submitting the idea.");
+      console.error("Submission Error:", error);
+    }
   };
 
   // Update file handler to capture binary data using FileReader
@@ -172,7 +232,7 @@ export default function IdeaSubmissionPage() {
   };
 
   /* ----------------- HEADER / NAVIGATION ----------------- */
-  // Desktop Header (kept exactly as before)
+  // Desktop Header
   const desktopHeader = (
     <header className="hidden md:flex sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-8 h-16 items-center justify-between">
       <Link href="/" className="flex items-center space-x-2 hover:underline">
@@ -206,17 +266,15 @@ export default function IdeaSubmissionPage() {
     </header>
   );
 
-  // Mobile Header (optimized for mobile with reduced margins and less crowded layout)
+  // Mobile Header
   const mobileHeader = (
     <header className="md:hidden sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2">
-      {/* Top Row: Title */}
       <div className="flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <BookOpen className="h-6 w-6" />
           <span className="text-xl font-bold">Sioux Steel Wiki</span>
         </Link>
       </div>
-      {/* Navigation Row */}
       <nav className="flex justify-around mt-2">
         <Link href="/">
           <Button variant="ghost" size="sm">
@@ -242,7 +300,6 @@ export default function IdeaSubmissionPage() {
     </header>
   );
 
-  // Use the appropriate header based on viewport.
   const headerComponent = (
     <>
       {desktopHeader}
@@ -263,7 +320,7 @@ export default function IdeaSubmissionPage() {
             <h1 className="text-2xl font-extrabold leading-tight tracking-tighter md:text-5xl">
               Submit Your Product Idea
             </h1>
-            <p className="mt-4 max-w-[700px] text-lg text-muted-foreground">
+            <p className="mt-4 max-w-[750px] text-lg text-muted-foreground">
               Great ideas can come from anywhere. Share yours and help shape the
               future of Sioux Steel.
             </p>
@@ -370,7 +427,8 @@ export default function IdeaSubmissionPage() {
                     • Be specific about the problem your idea solves
                   </li>
                   <li className="mb-1">
-                    • Consider alignment with company goals
+                    • Consider alignment with the goal of Sioux Steel and the
+                    rest of the organization
                   </li>
                   <li className="mb-1">
                     • Provide realistic resource estimates
