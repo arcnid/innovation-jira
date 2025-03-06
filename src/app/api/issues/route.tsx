@@ -4,14 +4,16 @@ import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("just hit api/issues POST route");
+    console.log("API route hit: /api/issues POST");
 
     // Retrieve the base URL for Jira.
     const baseJiraUrl = await getRequestUrl();
+    console.log("Base Jira URL:", baseJiraUrl);
 
     // Retrieve the latest access token for authorization.
     const token = await getLatestToken();
     if (!token || !token.access_token) {
+      console.error("No valid access token found");
       return NextResponse.json(
         { error: "Access token not found" },
         { status: 401 }
@@ -24,15 +26,25 @@ export async function POST(req: NextRequest) {
       .from("tokens")
       .select("*")
       .single();
-    // Additional validation can be added here if needed.
+    if (tokenError) {
+      console.error("Error fetching token from Supabase:", tokenError);
+    } else {
+      console.log("Token data from Supabase:", tokenData);
+    }
 
     // Parse the incoming request body.
     const requestBody = await req.json();
-    // Destructure required fields.
+    console.log("Incoming request body:", requestBody);
+
+    // Destructure minimal required fields.
     const { projectKey, summary, description, issueType } = requestBody;
 
-    // Validate that the required fields are provided.
     if (!projectKey || !summary || !issueType) {
+      console.error("Missing required fields", {
+        projectKey,
+        summary,
+        issueType,
+      });
       return NextResponse.json(
         {
           error:
@@ -42,19 +54,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Create an Atlassian Document Format (ADF) object for the description.
+    const descriptionContent = description || "No description provided";
+    const descriptionADF = {
+      type: "doc",
+      version: 1,
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: descriptionContent,
+            },
+          ],
+        },
+      ],
+    };
+
     // Construct the payload based on Jira's requirements.
     const payload = {
       fields: {
         project: { key: projectKey },
         summary,
-        // Description is optional; if not provided, send an empty string.
-        description: description || "",
-        issuetype: { name: issueType },
+        description: descriptionADF,
+        issuetype: { name: "Epic" },
       },
     };
 
+    console.log("Payload to send to Jira:", payload);
+
     // Construct the Jira create issue URL.
     const createIssueUrl = `${baseJiraUrl}/3/issue`;
+    console.log("Creating issue at:", createIssueUrl);
 
     // Send the POST request to Jira.
     const createResponse = await fetch(createIssueUrl, {
@@ -68,16 +100,19 @@ export async function POST(req: NextRequest) {
 
     if (!createResponse.ok) {
       const errorText = await createResponse.text();
+      console.error("Error creating Jira issue:", errorText);
       return NextResponse.json(
         { error: "Failed to create issue", details: errorText },
         { status: createResponse.status }
       );
     }
 
-    // Parse and return the response from Jira.
     const createData = await createResponse.json();
+    console.log("Jira issue created successfully:", createData);
+
     return NextResponse.json(createData);
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Exception caught while creating issue:", error);
     return NextResponse.json(
       {
         error: "Error creating issue",

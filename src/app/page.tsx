@@ -20,6 +20,7 @@ import {
   Search,
   ExternalLink,
   BookOpen,
+  Wrench,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -277,109 +278,99 @@ export default function WikiPortal() {
                 <TabsContent value="departments" className="space-y-8">
                   {/* Innovation R&D */}
                   <section id="innovation" className="scroll-mt-16">
-                    <Card className="shadow-lg">
-                      <CardHeader className="bg-primary/5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Lightbulb className="h-5 w-5 text-primary" />
-                            <CardTitle>Innovation R&amp;D</CardTitle>
+                    <Link
+                      href="https://siouxsteel.atlassian.net/wiki/spaces/INNOVATION/overview"
+                      target="_blank"
+                      className="block"
+                    >
+                      <Card className="shadow-lg transition transform duration-200 hover:scale-105 cursor-pointer">
+                        <CardHeader className="bg-primary/5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Lightbulb className="h-5 w-5 text-primary" />
+                              <CardTitle>Innovation R&amp;D</CardTitle>
+                            </div>
+                            <Badge variant="outline">Featured</Badge>
                           </div>
-                          <Badge variant="outline">Featured</Badge>
-                        </div>
-                        <CardDescription>
-                          Leading the charge in groundbreaking product research
-                          and development.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground">
-                          Our Innovation R&amp;D team pioneers emerging
-                          technologies and develops future-forward products.
-                          Collaborating with multiple departments, they
-                          transform creative ideas into tangible solutions.
-                        </p>
-                      </CardContent>
-                      <CardFooter className="border-t bg-muted/50 px-6 py-3">
-                        <Link
-                          href="https://siouxsteel.atlassian.net/wiki/spaces/INNOVATION/overview"
-                          className="flex items-center text-sm text-primary hover:underline"
-                          target="_blank"
-                        >
-                          Visit Innovation R&amp;D Confluence{" "}
-                          <ExternalLink className="ml-1 h-3 w-3" />
-                        </Link>
-                      </CardFooter>
-                    </Card>
+                          <CardDescription>
+                            Leading the charge in groundbreaking product
+                            research and development.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                          <p className="text-sm text-muted-foreground">
+                            Our Innovation R&amp;D team pioneers emerging
+                            technologies and develops future-forward products.
+                            Collaborating with multiple departments, they
+                            transform creative ideas into tangible solutions.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </section>
 
                   {/* Engineering */}
                   <section id="engineering" className="scroll-mt-16">
-                    <Card className="shadow-lg">
-                      <CardHeader>
-                        <div className="flex items-center space-x-2">
-                          <Code className="h-5 w-5 text-primary" />
-                          <CardTitle>Engineering</CardTitle>
-                        </div>
-                        <CardDescription>
-                          Crafting robust solutions and maintaining core
-                          systems.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground">
-                          The Engineering department is dedicated to building
-                          and refining our products and services. Our engineers
-                          and project managers work in tandem to ensure high
-                          standards and seamless performance across all
-                          operations.
-                        </p>
-                      </CardContent>
-                      <CardFooter className="border-t bg-muted/50 px-6 py-3">
-                        <Link
-                          href="https://siouxsteel.atlassian.net/wiki/spaces/Engineerin/overview"
-                          className="flex items-center text-sm text-primary hover:underline"
-                          target="_blank"
-                        >
-                          Visit Engineering Confluence{" "}
-                          <ExternalLink className="ml-1 h-3 w-3" />
-                        </Link>
-                      </CardFooter>
-                    </Card>
+                    <Link
+                      href="https://siouxsteel.atlassian.net/wiki/spaces/Engineerin/overview"
+                      target="_blank"
+                      className="block"
+                    >
+                      <Card className="shadow-lg transition transform duration-200 hover:scale-105 cursor-pointer">
+                        <CardHeader>
+                          <div className="flex items-center space-x-2">
+                            <Wrench className="h-5 w-5 text-primary" />
+                            <CardTitle>Engineering</CardTitle>
+                          </div>
+                          <CardDescription>
+                            Crafting robust solutions and maintaining core
+                            systems.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                          <p className="text-sm text-muted-foreground">
+                            The Engineering department is dedicated to building
+                            and refining our products and services. Our talented
+                            mechanical and structural engineers, together with
+                            project managers, work in tandem to ensure high
+                            standards and seamless performance across all
+                            operations.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </section>
 
                   {/* IT & Helpdesk */}
                   <section id="it" className="scroll-mt-16">
-                    <Card className="shadow-lg">
-                      <CardHeader>
-                        <div className="flex items-center space-x-2">
-                          <HelpCircle className="h-5 w-5 text-primary" />
-                          <CardTitle>
-                            Information Technology &amp; Helpdesk
-                          </CardTitle>
-                        </div>
-                        <CardDescription>
-                          Ensuring a seamless technical experience.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground">
-                          Our IT &amp; Helpdesk team is committed to maintaining
-                          a reliable technical infrastructure. They provide
-                          expert support for hardware, software, and network
-                          issues to keep our operations running smoothly.
-                        </p>
-                      </CardContent>
-                      <CardFooter className="border-t bg-muted/50 px-6 py-3">
-                        <Link
-                          href="https://siouxsteel.atlassian.net/wiki/spaces/SS/overview"
-                          className="flex items-center text-sm text-primary hover:underline"
-                          target="_blank"
-                        >
-                          Visit IT &amp; Helpdesk Confluence{" "}
-                          <ExternalLink className="ml-1 h-3 w-3" />
-                        </Link>
-                      </CardFooter>
-                    </Card>
+                    <Link
+                      href="https://siouxsteel.atlassian.net/wiki/spaces/SS/overview"
+                      target="_blank"
+                      className="block"
+                    >
+                      <Card className="shadow-lg transition transform duration-200 hover:scale-105 cursor-pointer">
+                        <CardHeader>
+                          <div className="flex items-center space-x-2">
+                            <HelpCircle className="h-5 w-5 text-primary" />
+                            <CardTitle>
+                              Information Technology &amp; Helpdesk
+                            </CardTitle>
+                          </div>
+                          <CardDescription>
+                            Ensuring a seamless technical experience.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                          <p className="text-sm text-muted-foreground">
+                            Our IT &amp; Helpdesk team is committed to
+                            maintaining a reliable technical infrastructure.
+                            They provide expert support for hardware, software,
+                            and network issues to keep our operations running
+                            smoothly.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </section>
                 </TabsContent>
 

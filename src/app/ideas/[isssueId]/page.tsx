@@ -167,7 +167,7 @@ export default function IdeaTracker() {
             swrData.fields.reporter.displayName) ||
           "",
         submissionDate: swrData.submissionDate || swrData.created,
-        expectedTimeline: swrData.expectedTimeline || "",
+        expectedTimeline: swrData.expectedTimeline || "Q1 2025 - Q4 2025",
         projectDescription, // Fixed description handling
         supportingDocuments: swrData.supportingDocuments || [],
         stages: stagesFromChildren,
@@ -338,7 +338,7 @@ export default function IdeaTracker() {
           </Card>
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Left side: Stage Flow */}
+            {/* Left side: Stage Flow (Timeline) */}
             <div className="w-full lg:w-1/2">
               <h2 className="text-xl font-semibold mb-4">Project Stages</h2>
               <div className="relative">
@@ -442,6 +442,7 @@ export default function IdeaTracker() {
                   {loading ? (
                     <Skeleton width="100%" />
                   ) : (
+                    // Display timeline data. This could be enhanced further with a timeline view.
                     <p>{data.expectedTimeline}</p>
                   )}
                 </CardContent>
@@ -473,28 +474,34 @@ export default function IdeaTracker() {
                 <CardContent>
                   {loading ? (
                     <Skeleton count={2} />
+                  ) : data.supportingDocuments.length === 0 ? (
+                    <p>No supporting documents available.</p>
                   ) : (
-                    <ul className="space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {data.supportingDocuments.map((doc, index) => (
-                        <li
+                        <div
                           key={index}
-                          className="flex items-center justify-between"
+                          className="border p-4 rounded-md shadow-sm flex flex-col justify-between"
                         >
-                          <span>{doc.name}</span>
-                          <div className="flex items-center">
-                            <Badge variant="secondary" className="mr-2">
+                          <div>
+                            <h4 className="font-semibold text-lg mb-1">
+                              {doc.name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
                               {doc.type.toUpperCase()}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground mr-2">
+                            </p>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">
                               {doc.size}
                             </span>
                             <Button variant="ghost" size="sm">
                               <Download className="h-4 w-4" />
                             </Button>
                           </div>
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </CardContent>
               </Card>

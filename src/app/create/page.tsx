@@ -181,6 +181,10 @@ export default function IdeaSubmissionPage() {
 
     try {
       // Call our API route to create the Jira issue.
+
+      console.log("just hit api/issues POST route");
+
+      console.log("just hit api with payload:", payload);
       const response = await fetch("/api/issues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
