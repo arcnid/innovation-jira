@@ -138,6 +138,19 @@ export default function IdeaSubmissionPage() {
     setFormProgress(calculateProgress());
   }, [watchedFields]);
 
+  // Load saved form data from localStorage on mount
+  useEffect(() => {
+    const savedData = localStorage.getItem("ideaSubmissionData");
+    if (savedData) {
+      form.reset(JSON.parse(savedData));
+    }
+  }, []);
+
+  // Auto-save form data to localStorage on every change
+  useEffect(() => {
+    localStorage.setItem("ideaSubmissionData", JSON.stringify(watchedFields));
+  }, [watchedFields]);
+
   // Updated submission handler that calls /api/issues POST
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log("Form Values:", values);
@@ -181,9 +194,7 @@ export default function IdeaSubmissionPage() {
 
     try {
       // Call our API route to create the Jira issue.
-
       console.log("just hit api/issues POST route");
-
       console.log("just hit api with payload:", payload);
       const response = await fetch("/api/issues", {
         method: "POST",
@@ -202,6 +213,9 @@ export default function IdeaSubmissionPage() {
       // Optionally, you could use the returned Jira issue data.
       const result = await response.json();
       console.log("Jira Issue Created:", result);
+
+      // Clear saved form data from localStorage upon successful submission
+      localStorage.removeItem("ideaSubmissionData");
 
       toast.success(
         "Idea submitted successfully! Your idea has been submitted for review."
