@@ -321,12 +321,12 @@ export default function IdeaPipelinePage() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="h-40 overflow-hidden">
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <idea.icon className="h-4 w-4" />
                         <span>{idea.timeframe}</span>
                       </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
+                      <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
                         {idea.description}
                       </p>
                       <div className="mt-2 text-xs text-muted-foreground">
